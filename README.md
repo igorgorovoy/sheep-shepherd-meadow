@@ -8,42 +8,31 @@ A container runtime and orchestration platform built from scratch in Go.
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                      sheepctl (CLI)                     │
-│              apply / get / scale / delete                │
-└──────────────────────┬──────────────────────────────────┘
-                       │ HTTP REST
-┌──────────────────────▼──────────────────────────────────┐
-│                   Shepherd (Control Plane)               │
-│  ┌─────────────┐ ┌───────────┐ ┌─────────────────────┐  │
-│  │  API Server  │ │ Scheduler │ │  Controller Manager  │ │
-│  └─────────────┘ └───────────┘ │  - Replication       │  │
-│         │                       │  - Service           │  │
-│         │        BoltDB Store   │  - Node Health       │  │
-│         └────────┐              └─────────────────────┘  │
-│                  ▼                                        │
-│           ┌────────────┐                                  │
-│           │  shepherd.db│                                  │
-│           └────────────┘                                  │
-└──────────────────────────────────────────────────────────┘
-                       │ HTTP (heartbeat + pod sync)
-┌──────────────────────▼──────────────────────────────────┐
-│                   Node Agent                             │
-│  ┌──────────────────────────────────────────┐            │
-│  │              Sheep (Runtime)              │            │
-│  │  ┌──────────┐ ┌────────┐ ┌────────────┐  │           │
-│  │  │Namespaces│ │Cgroups │ │ OverlayFS  │  │           │
-│  │  │PID,NET,  │ │Memory, │ │ Image      │  │           │
-│  │  │MNT,UTS,  │ │CPU,    │ │ Layers     │  │           │
-│  │  │IPC       │ │PIDs    │ │            │  │           │
-│  │  └──────────┘ └────────┘ └────────────┘  │           │
-│  │  ┌──────────────────────────────────┐     │           │
-│  │  │    Bridge Networking (sheep0)    │     │           │
-│  │  │    veth pairs / NAT / iptables   │     │           │
-│  │  └──────────────────────────────────┘     │           │
-│  └──────────────────────────────────────────┘            │
-└──────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    CLI["sheepctl (CLI)<br/>apply / get / scale / delete"]
+
+    subgraph CP["Shepherd (Control Plane)"]
+        API["API Server"]
+        SCHED["Scheduler"]
+        CM["Controller Manager<br/>• Replication<br/>• Service<br/>• Node Health"]
+        DB[("shepherd.db<br/>BoltDB Store")]
+        API --> DB
+        SCHED --> API
+        CM --> API
+    end
+
+    subgraph NODE["Node Agent"]
+        subgraph SHEEP["Sheep (Runtime)"]
+            NS["Namespaces<br/>PID, NET, MNT,<br/>UTS, IPC"]
+            CG["Cgroups<br/>Memory, CPU,<br/>PIDs"]
+            OFS["OverlayFS<br/>Image Layers"]
+            NET["Bridge Networking (sheep0)<br/>veth pairs / NAT / iptables"]
+        end
+    end
+
+    CLI -- "HTTP REST" --> API
+    API -- "HTTP (heartbeat + pod sync)" --> NODE
 ```
 
 ## Project Structure
@@ -286,6 +275,35 @@ sudo ./bin/shepherd --mode agent --node-name worker-2 --api-addr 10.0.0.1:9876
 - [Sheep Internals](docs/sheep-internals.md) — container runtime: namespaces, cgroups, overlayfs, networking
 - [Shepherd Internals](docs/shepherd-internals.md) — orchestrator: scheduler, controllers, reconciliation loops
 - [Data Model](docs/data-model.md) — entity diagrams, storage schema, filesystem layout
+
+## Useful Resources
+
+### Linux Container Primitives
+
+- [Linux namespaces — man 7 namespaces](https://man7.org/linux/man-pages/man7/namespaces.7.html) — основа ізоляції процесів
+- [Control Groups v2 — kernel docs](https://docs.kernel.org/admin-guide/cgroup-v2.html) — обмеження ресурсів (memory, CPU, PIDs)
+- [OverlayFS — kernel docs](https://docs.kernel.org/filesystems/overlayfs.html) — шарувата файлова система для образів
+- [pivot_root(2) — man page](https://man7.org/linux/man-pages/man2/pivot_root.2.html) — зміна кореневої файлової системи контейнера
+- [veth(4) — man page](https://man7.org/linux/man-pages/man4/veth.4.html) — віртуальні Ethernet-пари для мережі контейнерів
+
+### Container Runtime & Standards
+
+- [OCI Runtime Specification](https://github.com/opencontainers/runtime-spec) — стандарт запуску контейнерів
+- [OCI Image Specification](https://github.com/opencontainers/image-spec) — стандарт формату образів
+- [OCI Distribution Specification](https://github.com/opencontainers/distribution-spec) — стандарт registry API (реалізований у Meadow)
+- [runc](https://github.com/opencontainers/runc) — еталонна реалізація OCI runtime
+- [Containers from scratch — Liz Rice](https://www.youtube.com/watch?v=8fi7uSYlOdc) — як написати контейнерний runtime на Go з нуля
+
+### Orchestration
+
+- [Kubernetes Architecture](https://kubernetes.io/docs/concepts/architecture/) — архітектура, що надихнула Shepherd
+- [Kubernetes Scheduler](https://kubernetes.io/docs/concepts/scheduling-eviction/kube-scheduler/) — модель планування filter + score
+- [Controllers and Reconciliation](https://kubernetes.io/docs/concepts/architecture/controller/) — патерн reconciliation loop
+
+### Go Libraries
+
+- [bbolt](https://github.com/etcd-io/bbolt) — embedded key/value сховище (BoltDB), що використовується в Shepherd
+- [Go syscall package](https://pkg.go.dev/syscall) — системні виклики для namespaces та mount
 
 ## License
 
