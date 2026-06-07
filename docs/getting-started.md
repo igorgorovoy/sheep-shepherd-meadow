@@ -1,55 +1,55 @@
 # Getting Started
 
-Практичний гайд: збірка, створення образів, запуск контейнерів та оркестрація.
+A practical guide: building, creating images, running containers, and orchestration.
 
-> **Вимога**: runtime працює тільки на Linux з cgroups v2. На macOS/Windows — тільки компіляція.
+> **Requirement**: the runtime only works on Linux with cgroups v2. On macOS/Windows — compilation only.
 
 ## Table of Contents
 
-- [1. Збірка](#1-збірка)
-- [2. Запуск контейнера (Sheep)](#2-запуск-контейнера-sheep)
-- [3. Запуск свого застосунку](#3-запуск-свого-застосунку)
-- [4. Оркестрація (Shepherd)](#4-оркестрація-shepherd)
-- [5. Multi-Node кластер](#5-multi-node-кластер)
+- [1. Building](#1-building)
+- [2. Running a Container (Sheep)](#2-running-a-container-sheep)
+- [3. Running Your Own Application](#3-running-your-own-application)
+- [4. Orchestration (Shepherd)](#4-orchestration-shepherd)
+- [5. Multi-Node Cluster](#5-multi-node-cluster)
 
 ---
 
-## 1. Збірка
+## 1. Building
 
 ```bash
-# Збірка всіх трьох бінарників
+# Build all three binaries
 make build
 
-# Результат:
-#   bin/sheep      — контейнерний рантайм
-#   bin/shepherd   — оркестратор
-#   bin/sheepctl   — CLI клієнт
+# Output:
+#   bin/sheep      — container runtime
+#   bin/shepherd   — orchestrator
+#   bin/sheepctl   — CLI client
 
-# Крос-компіляція для Linux (з macOS):
+# Cross-compile for Linux (from macOS):
 GOOS=linux GOARCH=amd64 make build
 ```
 
-## 2. Запуск контейнера (Sheep)
+## 2. Running a Container (Sheep)
 
-### Крок 1: Створити базовий образ
+### Step 1: Create a base image
 
 ```bash
-# Bootstrap — копіює базові утиліти з хост-системи
+# Bootstrap — copies basic utilities from the host system
 sudo ./bin/sheep bootstrap minimal
 
-# Перевірити
+# Verify
 sudo ./bin/sheep images
 # IMAGE ID      NAME     TAG     SIZE      CREATED
 # a1b2c3d4e5f6  minimal  latest  4.2 MB    2s ago
 ```
 
-### Крок 2: Запустити контейнер
+### Step 2: Run a container
 
 ```bash
-# Інтерактивний shell
+# Interactive shell
 sudo ./bin/sheep run --name mybox minimal /bin/sh
 
-# З лімітами ресурсів
+# With resource limits
 sudo ./bin/sheep run \
   --name limited \
   -m 128m \
@@ -57,37 +57,37 @@ sudo ./bin/sheep run \
   --cpu-quota 50000 \
   minimal /bin/sh
 
-# У фоні (detach)
+# In the background (detach)
 sudo ./bin/sheep run -d --name bg-task minimal /bin/sleep 3600
 ```
 
-### Крок 3: Керування контейнерами
+### Step 3: Manage containers
 
 ```bash
-# Список запущених
+# List running containers
 sudo ./bin/sheep ps
 
-# Список всіх (включно зі зупиненими)
+# List all (including stopped)
 sudo ./bin/sheep ps -a
 
-# Детальна інформація
+# Detailed information
 sudo ./bin/sheep inspect mybox
 
-# Зупинити
+# Stop
 sudo ./bin/sheep stop mybox
 
-# Видалити
+# Remove
 sudo ./bin/sheep rm mybox
 ```
 
-## 3. Запуск свого застосунку
+## 3. Running Your Own Application
 
-### Приклад: Go HTTP-сервер
+### Example: Go HTTP server
 
-**Крок 1**: Зібрати статичний бінарник
+**Step 1**: Build a static binary
 
 ```bash
-# Ваш застосунок (приклад)
+# Your application (example)
 cat > /tmp/myapp.go << 'EOF'
 package main
 
@@ -105,33 +105,33 @@ func main() {
 }
 EOF
 
-# Статична збірка (важливо — без залежностей від libc)
+# Static build (important — no libc dependencies)
 CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
   go build -o /tmp/myapp /tmp/myapp.go
 ```
 
-**Крок 2**: Створити образ з rootfs
+**Step 2**: Create an image from a rootfs
 
 ```bash
-# Створити структуру rootfs
+# Create the rootfs structure
 mkdir -p /tmp/myapp-rootfs/{bin,etc,dev,proc,sys,tmp}
 
-# Скопіювати бінарник
+# Copy the binary
 cp /tmp/myapp /tmp/myapp-rootfs/bin/myapp
 
-# Мінімальні конфіги
+# Minimal configs
 echo "myapp-container" > /tmp/myapp-rootfs/etc/hostname
 echo "127.0.0.1 localhost" > /tmp/myapp-rootfs/etc/hosts
 echo "nameserver 8.8.8.8" > /tmp/myapp-rootfs/etc/resolv.conf
 
-# Запакувати в tar
+# Pack into a tar
 cd /tmp/myapp-rootfs && tar czf /tmp/myapp.tar.gz . && cd -
 
-# Імпортувати в sheep
+# Import into sheep
 sudo ./bin/sheep import myapp /tmp/myapp.tar.gz
 ```
 
-**Крок 3**: Запустити
+**Step 3**: Run
 
 ```bash
 sudo ./bin/sheep run \
@@ -141,28 +141,28 @@ sudo ./bin/sheep run \
   --hostname web-server \
   myapp /bin/myapp
 
-# Перевірити
+# Verify
 sudo ./bin/sheep ps
 sudo ./bin/sheep inspect web
 # IP: 10.20.0.2
 
-# Тест
+# Test
 curl http://10.20.0.2:8080/
 # Hello from Sheep container!
 ```
 
-### Приклад: Shell-скрипт
+### Example: Shell script
 
 ```bash
-# Створити rootfs з shell-скриптом
+# Create a rootfs with a shell script
 mkdir -p /tmp/script-rootfs/{bin,etc,dev,proc,sys,tmp}
 
-# Скопіювати потрібні утиліти
+# Copy the required utilities
 for bin in sh echo sleep cat ls mkdir; do
   cp /bin/$bin /tmp/script-rootfs/bin/ 2>/dev/null
 done
 
-# Створити скрипт
+# Create the script
 cat > /tmp/script-rootfs/bin/entrypoint.sh << 'SCRIPT'
 #!/bin/sh
 echo "Container started at $(cat /proc/uptime | cut -d' ' -f1)s"
@@ -175,32 +175,32 @@ done
 SCRIPT
 chmod +x /tmp/script-rootfs/bin/entrypoint.sh
 
-# Мінімальні конфіги
+# Minimal configs
 echo "script-box" > /tmp/script-rootfs/etc/hostname
 echo "127.0.0.1 localhost" > /tmp/script-rootfs/etc/hosts
 
-# Імпорт і запуск
+# Import and run
 cd /tmp/script-rootfs && tar czf /tmp/script.tar.gz . && cd -
 sudo ./bin/sheep import script-image /tmp/script.tar.gz
 sudo ./bin/sheep run --name script-box script-image /bin/sh /bin/entrypoint.sh
 ```
 
-## 4. Оркестрація (Shepherd)
+## 4. Orchestration (Shepherd)
 
-### Standalone режим (все в одному процесі)
+### Standalone mode (everything in one process)
 
 ```bash
-# Термінал 1: Запустити shepherd
+# Terminal 1: Start shepherd
 sudo ./bin/shepherd --mode standalone --addr :9876
 
-# Термінал 2: Працювати з кластером
+# Terminal 2: Work with the cluster
 export SHEPHERD_API=localhost:9876
 ```
 
-### Розгорнути Pod
+### Deploy a Pod
 
 ```bash
-# Створити pod.json
+# Create pod.json
 cat > /tmp/pod.json << 'EOF'
 {
   "kind": "Pod",
@@ -220,16 +220,16 @@ cat > /tmp/pod.json << 'EOF'
 }
 EOF
 
-# Застосувати
+# Apply
 ./bin/sheepctl apply -f /tmp/pod.json
 
-# Перевірити
+# Verify
 ./bin/sheepctl get pods
 # NAME         STATUS    NODE       IP          AGE
 # web-server   Running   my-host    10.20.0.2   5s
 ```
 
-### Розгорнути Deployment (з реплікацією)
+### Deploy a Deployment (with replication)
 
 ```bash
 cat > /tmp/deployment.json << 'EOF'
@@ -262,7 +262,7 @@ EOF
 
 ./bin/sheepctl apply -f /tmp/deployment.json
 
-# Shepherd автоматично створить 3 поди:
+# Shepherd will automatically create 3 pods:
 ./bin/sheepctl get pods
 # NAME    STATUS    NODE       IP           AGE
 # web-0   Running   my-host    10.20.0.3    3s
@@ -270,7 +270,7 @@ EOF
 # web-2   Running   my-host    10.20.0.5    3s
 ```
 
-### Створити Service
+### Create a Service
 
 ```bash
 cat > /tmp/service.json << 'EOF'
@@ -290,43 +290,43 @@ EOF
 
 ./bin/sheepctl apply -f /tmp/service.json
 
-# Перевірити endpoints (знайде Running поди з label app=web)
+# Check endpoints (finds Running pods with label app=web)
 ./bin/sheepctl get services
 # NAME      TYPE        CLUSTER-IP   PORTS        ENDPOINTS  AGE
 # web-svc   ClusterIP                80->8080     3          2s
 ```
 
-### Масштабування
+### Scaling
 
 ```bash
-# Збільшити до 5 реплік
+# Scale up to 5 replicas
 ./bin/sheepctl scale deployment/web --replicas=5
 
-# Зменшити до 1
+# Scale down to 1
 ./bin/sheepctl scale deployment/web --replicas=1
 
-# Моніторинг
+# Monitoring
 ./bin/sheepctl get deployments
 # NAME   READY   AVAILABLE   AGE
 # web    1/1     1           2m
 ```
 
-### Моніторинг кластера
+### Cluster monitoring
 
 ```bash
-# Ноди
+# Nodes
 ./bin/sheepctl nodes
 # NAME       STATUS   PODS   CPU      MEMORY    AGE
 # my-host    Ready    3      4000m    8.0 GB    5m
 
-# Події
+# Events
 ./bin/sheepctl events
 # TYPE      REASON      OBJECT          MESSAGE                              AGE
 # Normal    Created     pod/web-0       Pod web-0 created                    5m
 # Normal    Scheduled   pod/web-0       Pod web-0 scheduled to my-host       5m
 # Normal    Created     deployment/web  Created pod web-0 for deployment     5m
 
-# Інформація про кластер
+# Cluster information
 ./bin/sheepctl info
 # Shepherd Cluster Info
 # ---------------------
@@ -335,11 +335,11 @@ EOF
 # node_count:     1
 # pod_count:      3
 
-# Детальна інформація про pod
+# Detailed pod information
 ./bin/sheepctl describe pod web-0
 ```
 
-### Очистка
+### Cleanup
 
 ```bash
 ./bin/sheepctl delete deployment web
@@ -347,7 +347,7 @@ EOF
 ./bin/sheepctl delete pod web-server
 ```
 
-## 5. Multi-Node кластер
+## 5. Multi-Node Cluster
 
 ```mermaid
 graph TB
@@ -381,14 +381,14 @@ sudo ./bin/shepherd --mode agent \
   --node-name worker-2 \
   --api-addr 10.0.0.1:9876
 
-# З будь-якої машини:
+# From any machine:
 export SHEPHERD_API=10.0.0.1:9876
 ./bin/sheepctl nodes
 # NAME       STATUS   PODS   CPU      MEMORY    AGE
 # worker-1   Ready    0      4000m    8.0 GB    10s
 # worker-2   Ready    0      8000m    16.0 GB   8s
 
-# Scheduler розподілить поди по нодах автоматично
+# The scheduler will distribute pods across nodes automatically
 ./bin/sheepctl apply -f deployment.json
 ./bin/sheepctl get pods
 # NAME    STATUS    NODE        IP           AGE
@@ -397,94 +397,94 @@ export SHEPHERD_API=10.0.0.1:9876
 # web-2   Running   worker-1    10.20.0.4    3s
 ```
 
-## Повна шпаргалка
+## Full Cheat Sheet
 
-### Sheep — контейнери
+### Sheep — containers
 
 ```bash
-# --- Образи ---
-sheep pull nginx:alpine                       # тягнути з Docker Hub
-sheep pull localhost:5555/myapp:v1            # тягнути з Meadow
-sheep push localhost:5555/myteam/app:v2       # запушити у Meadow
-sheep tag nginx:alpine myregistry/nginx:prod  # перетегувати образ
-sheep images                                  # список образів
-sheep import myapp rootfs.tar.gz              # імпорт з тарболу
-sheep bootstrap minimal                       # мінімальний образ з хоста
-sheep rmi <image>                             # видалити образ
+# --- Images ---
+sheep pull nginx:alpine                       # pull from Docker Hub
+sheep pull localhost:5555/myapp:v1            # pull from Meadow
+sheep push localhost:5555/myteam/app:v2       # push to Meadow
+sheep tag nginx:alpine myregistry/nginx:prod  # retag an image
+sheep images                                  # list images
+sheep import myapp rootfs.tar.gz              # import from a tarball
+sheep bootstrap minimal                       # minimal image from the host
+sheep rmi <image>                             # remove an image
 
-# --- Контейнери ---
-sheep run -d --name web nginx /usr/sbin/nginx   # запустити у фоні
-sheep run --name box -m 256m alpine /bin/sh     # з лімітом пам'яті
+# --- Containers ---
+sheep run -d --name web nginx /usr/sbin/nginx   # run in the background
+sheep run --name box -m 256m alpine /bin/sh     # with a memory limit
 sheep run -d --name api \
   -m 512m --pids-limit 100 \
   -e PORT=3000 -e ENV=prod \
   -v /data:/app/data:ro \
-  myapp /bin/server                              # повний приклад
+  myapp /bin/server                              # full example
 
-sheep create --name later alpine /bin/sh         # створити без старту
-sheep start later                                # запустити пізніше
+sheep create --name later alpine /bin/sh         # create without starting
+sheep start later                                # start later
 
-sheep ps                                         # тільки запущені
-sheep ps -a                                      # всі контейнери
-sheep inspect web                                # деталі (PID, IP, ліміти)
+sheep ps                                         # running only
+sheep ps -a                                      # all containers
+sheep inspect web                                # details (PID, IP, limits)
 sheep logs web                                   # stdout/stderr
-sheep stop web                                   # зупинити (SIGTERM→SIGKILL)
-sheep rm web                                     # видалити
-sheep rm web api box                             # видалити кілька
+sheep stop web                                   # stop (SIGTERM→SIGKILL)
+sheep rm web                                     # remove
+sheep rm web api box                             # remove several
 ```
 
-### Meadow — реєстр образів
+### Meadow — image registry
 
 ```bash
-meadow --addr :5555                              # запустити реєстр
+meadow --addr :5555                              # start the registry
 
 curl http://localhost:5555/v2/                    # health check
-curl http://localhost:5555/v2/_catalog            # список репо
-curl http://localhost:5555/v2/myapp/tags/list     # теги
-curl http://localhost:5555/meadow/stats           # статистика
+curl http://localhost:5555/v2/_catalog            # list repos
+curl http://localhost:5555/v2/myapp/tags/list     # tags
+curl http://localhost:5555/meadow/stats           # statistics
 ```
 
-### Shepherd — оркестрація
+### Shepherd — orchestration
 
 ```bash
-# --- Запуск ---
-shepherd --mode standalone                        # все-в-одному (dev)
+# --- Startup ---
+shepherd --mode standalone                        # all-in-one (dev)
 shepherd --mode server --addr :9876               # control plane
 shepherd --mode agent \
   --node-name worker-1 \
   --api-addr 10.0.0.1:9876                       # worker node
 
-# --- Керування ресурсами ---
-sheepctl apply -f pod.json                        # створити з файлу
+# --- Resource management ---
+sheepctl apply -f pod.json                        # create from a file
 sheepctl apply -f deployment.json
 sheepctl apply -f service.json
 
-sheepctl get pods                                 # список подів
-sheepctl get pods -n staging                      # в конкретному namespace
-sheepctl get pod my-pod                           # конкретний под
-sheepctl get services                             # список сервісів
-sheepctl get deployments                          # список деплойментів
+sheepctl get pods                                 # list pods
+sheepctl get pods -n staging                      # in a specific namespace
+sheepctl get pod my-pod                           # a specific pod
+sheepctl get services                             # list services
+sheepctl get deployments                          # list deployments
 
-sheepctl describe pod my-pod                      # детальний JSON
+sheepctl describe pod my-pod                      # detailed JSON
 sheepctl describe deployment web
 
-sheepctl scale deployment/web --replicas=5        # масштабувати
-sheepctl scale deployment/web --replicas=1        # зменшити
+sheepctl scale deployment/web --replicas=5        # scale up
+sheepctl scale deployment/web --replicas=1        # scale down
 
-sheepctl delete pod my-pod                        # видалити під
-sheepctl delete deployment web                    # видалити деплоймент
-sheepctl delete service web-svc                   # видалити сервіс
+sheepctl delete pod my-pod                        # delete a pod
+sheepctl delete deployment web                    # delete a deployment
+sheepctl delete service web-svc                   # delete a service
 
-# --- Моніторинг ---
-sheepctl nodes                                    # стан нод
-sheepctl events                                   # події кластера
-sheepctl info                                     # зведена інформація
-sheepctl logs my-pod                              # логи поду
+# --- Monitoring ---
+sheepctl nodes                                    # node status
+sheepctl events                                   # cluster events
+sheepctl info                                     # cluster summary
+sheepctl logs my-pod                              # pod logs
 ```
 
-### Змінні оточення
+### Environment variables
 
 ```bash
-export SHEEP_DATA_DIR=/tmp/sheep     # каталог даних sheep (default: /var/lib/sheep)
-export SHEPHERD_API=10.0.0.1:9876    # адреса API shepherd (default: localhost:9876)
+export SHEEP_DATA_DIR=/tmp/sheep     # sheep data directory (default: /var/lib/sheep)
+export SHEPHERD_API=10.0.0.1:9876    # shepherd API address (default: localhost:9876)
 ```
