@@ -1,0 +1,34 @@
+{
+  "kind": "Deployment",
+  "metadata": {
+    "name": "web",
+    "namespace": "default"
+  },
+  "spec": {
+    "replicas": 3,
+    "selector": {
+      "app": "web"
+    },
+    "template": {
+      "metadata": {
+        "labels": {
+          "app": "web"
+        }
+      },
+      "spec": {
+        "containers": [
+          {
+            "name": "web",
+            "image": "minimal",
+            "command": ["/bin/sh", "-c", "echo 'Hello from Sheep pod!' && sleep 3600"],
+            "resources": {
+              "memory": 67108864,
+              "cpu": 250
+            }
+          }
+        ],
+        "restart_policy": "Always"
+      }
+    }
+  }
+}

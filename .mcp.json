@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "stage-tasks": {
+      "command": "/Users/gorovoy/__SYNC__/projects/personal/agentic-ai-landing-zone/.venv/bin/python3.14",
+      "args": ["mcp-servers-tasks/server.py"],
+      "cwd": "/Users/gorovoy/__SYNC__/projects/personal/agentic-ai-landing-zone",
+      "env": {
+        "TASKS_ENV_FILE": ".env.mcp.stage"
+      }
+    }
+  }
+}

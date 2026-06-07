@@ -1,0 +1,14 @@
+# Compiled binaries
+sheep
+sheepctl
+shepherd
+bin/
+
+# OS files
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo

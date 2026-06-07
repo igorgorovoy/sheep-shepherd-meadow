@@ -1,0 +1,30 @@
+{
+  "kind": "Pod",
+  "metadata": {
+    "name": "web-server",
+    "namespace": "default",
+    "labels": {
+      "app": "web",
+      "tier": "frontend"
+    }
+  },
+  "spec": {
+    "containers": [
+      {
+        "name": "web",
+        "image": "minimal",
+        "command": ["/bin/sh", "-c", "echo 'Hello from Sheep!' && sleep 3600"],
+        "ports": [
+          {
+            "container_port": 8080
+          }
+        ],
+        "resources": {
+          "memory": 67108864,
+          "cpu": 250
+        }
+      }
+    ],
+    "restart_policy": "Always"
+  }
+}

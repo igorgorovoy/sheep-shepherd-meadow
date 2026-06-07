@@ -1,0 +1,21 @@
+{
+  "kind": "Service",
+  "metadata": {
+    "name": "web-service",
+    "namespace": "default"
+  },
+  "spec": {
+    "selector": {
+      "app": "web"
+    },
+    "ports": [
+      {
+        "name": "http",
+        "port": 80,
+        "target_port": 8080,
+        "protocol": "tcp"
+      }
+    ],
+    "type": "ClusterIP"
+  }
+}
