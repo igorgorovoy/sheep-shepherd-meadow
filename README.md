@@ -270,7 +270,7 @@ sudo ./bin/shepherd --mode agent --node-name worker-2 --api-addr 10.0.0.1:9876
 
 ## Documentation
 
-- **[Getting Started](docs/getting-started.md)** — збірка, створення образів, запуск застосунків, оркестрація
+- **[Getting Started](docs/getting-started.md)** — building, creating images, running applications, orchestration
 - [Architecture Overview](docs/architecture.md) — system design, component diagrams
 - [Sheep Internals](docs/sheep-internals.md) — container runtime: namespaces, cgroups, overlayfs, networking
 - [Shepherd Internals](docs/shepherd-internals.md) — orchestrator: scheduler, controllers, reconciliation loops
@@ -280,30 +280,30 @@ sudo ./bin/shepherd --mode agent --node-name worker-2 --api-addr 10.0.0.1:9876
 
 ### Linux Container Primitives
 
-- [Linux namespaces — man 7 namespaces](https://man7.org/linux/man-pages/man7/namespaces.7.html) — основа ізоляції процесів
-- [Control Groups v2 — kernel docs](https://docs.kernel.org/admin-guide/cgroup-v2.html) — обмеження ресурсів (memory, CPU, PIDs)
-- [OverlayFS — kernel docs](https://docs.kernel.org/filesystems/overlayfs.html) — шарувата файлова система для образів
-- [pivot_root(2) — man page](https://man7.org/linux/man-pages/man2/pivot_root.2.html) — зміна кореневої файлової системи контейнера
-- [veth(4) — man page](https://man7.org/linux/man-pages/man4/veth.4.html) — віртуальні Ethernet-пари для мережі контейнерів
+- [Linux namespaces — man 7 namespaces](https://man7.org/linux/man-pages/man7/namespaces.7.html) — the foundation of process isolation
+- [Control Groups v2 — kernel docs](https://docs.kernel.org/admin-guide/cgroup-v2.html) — resource limiting (memory, CPU, PIDs)
+- [OverlayFS — kernel docs](https://docs.kernel.org/filesystems/overlayfs.html) — layered filesystem for images
+- [pivot_root(2) — man page](https://man7.org/linux/man-pages/man2/pivot_root.2.html) — changing the container's root filesystem
+- [veth(4) — man page](https://man7.org/linux/man-pages/man4/veth.4.html) — virtual Ethernet pairs for container networking
 
 ### Container Runtime & Standards
 
-- [OCI Runtime Specification](https://github.com/opencontainers/runtime-spec) — стандарт запуску контейнерів
-- [OCI Image Specification](https://github.com/opencontainers/image-spec) — стандарт формату образів
-- [OCI Distribution Specification](https://github.com/opencontainers/distribution-spec) — стандарт registry API (реалізований у Meadow)
-- [runc](https://github.com/opencontainers/runc) — еталонна реалізація OCI runtime
-- [Containers from scratch — Liz Rice](https://www.youtube.com/watch?v=8fi7uSYlOdc) — як написати контейнерний runtime на Go з нуля
+- [OCI Runtime Specification](https://github.com/opencontainers/runtime-spec) — the container execution standard
+- [OCI Image Specification](https://github.com/opencontainers/image-spec) — the image format standard
+- [OCI Distribution Specification](https://github.com/opencontainers/distribution-spec) — the registry API standard (implemented by Meadow)
+- [runc](https://github.com/opencontainers/runc) — the reference OCI runtime implementation
+- [Containers from scratch — Liz Rice](https://www.youtube.com/watch?v=8fi7uSYlOdc) — how to write a container runtime in Go from scratch
 
 ### Orchestration
 
-- [Kubernetes Architecture](https://kubernetes.io/docs/concepts/architecture/) — архітектура, що надихнула Shepherd
-- [Kubernetes Scheduler](https://kubernetes.io/docs/concepts/scheduling-eviction/kube-scheduler/) — модель планування filter + score
-- [Controllers and Reconciliation](https://kubernetes.io/docs/concepts/architecture/controller/) — патерн reconciliation loop
+- [Kubernetes Architecture](https://kubernetes.io/docs/concepts/architecture/) — the architecture that inspired Shepherd
+- [Kubernetes Scheduler](https://kubernetes.io/docs/concepts/scheduling-eviction/kube-scheduler/) — the filter + score scheduling model
+- [Controllers and Reconciliation](https://kubernetes.io/docs/concepts/architecture/controller/) — the reconciliation loop pattern
 
 ### Go Libraries
 
-- [bbolt](https://github.com/etcd-io/bbolt) — embedded key/value сховище (BoltDB), що використовується в Shepherd
-- [Go syscall package](https://pkg.go.dev/syscall) — системні виклики для namespaces та mount
+- [bbolt](https://github.com/etcd-io/bbolt) — the embedded key/value store (BoltDB) used by Shepherd
+- [Go syscall package](https://pkg.go.dev/syscall) — system calls for namespaces and mounts
 
 ## License
 
