@@ -30,7 +30,7 @@ type Store struct {
 }
 
 func NewStore(path string) (*Store, error) {
-	db, err := bolt.Open(path, 0600, &bolt.Options{Timeout: 1 * time.Second})
+	db, err := bolt.Open(path, 0600, &bolt.Options{Timeout: 5 * time.Second})
 	if err != nil {
 		return nil, fmt.Errorf("open store: %w", err)
 	}

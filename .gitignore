@@ -3,6 +3,7 @@
 /sheep
 /sheepctl
 /shepherd
+/meadow
 bin/
 
 # OS files

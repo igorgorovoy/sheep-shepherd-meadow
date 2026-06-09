@@ -186,8 +186,16 @@ func (a *Agent) startPod(pod *Pod) {
 			env = append(env, fmt.Sprintf("%s=%s", k, v))
 		}
 
+		ctrName := fmt.Sprintf("%s-%s", pod.Metadata.Name, cs.Name)
+
+		// Clean up any existing container with the same name
+		if old, err := a.mgr.Get(ctrName); err == nil {
+			a.mgr.Stop(old.ID)
+			a.mgr.Remove(old.ID)
+		}
+
 		opts := container.RunOpts{
-			Name:    fmt.Sprintf("%s-%s", pod.Metadata.Name, cs.Name),
+			Name:    ctrName,
 			Image:   cs.Image,
 			Command: cs.Command,
 			Config: container.Config{
