@@ -1,0 +1,190 @@
+/* ==========================================================================
+   Sheep & Shepherd — Monochrome Design System
+   Grayscale only. No hue anywhere. Status is conveyed through weight,
+   borders, fills, and stroke style — never color.
+   ========================================================================== */
+
+:root {
+  /* --- Type scale ------------------------------------------------------ */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica,
+    Arial, 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'SFMono-Regular', 'Menlo', 'Consolas',
+    'Liberation Mono', monospace;
+
+  --fs-xs: 0.6875rem; /* 11px */
+  --fs-sm: 0.8125rem; /* 13px */
+  --fs-md: 0.9375rem; /* 15px */
+  --fs-lg: 1.125rem; /* 18px */
+  --fs-xl: 1.5rem; /* 24px */
+  --fs-2xl: 2rem; /* 32px */
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
+  --lh-tight: 1.2;
+  --lh-normal: 1.5;
+
+  /* --- Spacing scale (4px base) --------------------------------------- */
+  --sp-1: 0.25rem;
+  --sp-2: 0.5rem;
+  --sp-3: 0.75rem;
+  --sp-4: 1rem;
+  --sp-5: 1.5rem;
+  --sp-6: 2rem;
+  --sp-7: 3rem;
+  --sp-8: 4rem;
+
+  /* --- Radii ----------------------------------------------------------- */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 14px;
+  --radius-pill: 999px;
+
+  /* --- Layout ---------------------------------------------------------- */
+  --sidebar-w: 232px;
+  --topbar-h: 60px;
+  --content-max: 1320px;
+
+  /* --- Motion ---------------------------------------------------------- */
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --dur: 160ms;
+}
+
+/* --- Gray ramp: LIGHT theme (black on white) ------------------------- */
+:root,
+:root[data-theme='light'] {
+  --g-0: #ffffff; /* page background */
+  --g-1: #fafafa;
+  --g-2: #f2f2f2; /* subtle fill */
+  --g-3: #e6e6e6; /* borders */
+  --g-4: #d4d4d4;
+  --g-5: #b3b3b3;
+  --g-6: #8c8c8c; /* muted text */
+  --g-7: #595959;
+  --g-8: #333333;
+  --g-9: #111111; /* primary text / ink */
+  --g-10: #000000; /* pure black accents */
+
+  --bg: var(--g-0);
+  --bg-panel: var(--g-0);
+  --bg-subtle: var(--g-2);
+  --bg-inset: var(--g-1);
+  --border: var(--g-3);
+  --border-strong: var(--g-5);
+  --text: var(--g-9);
+  --text-muted: var(--g-6);
+  --text-faint: var(--g-5);
+  --ink: var(--g-10);
+  --on-ink: var(--g-0);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --track: var(--g-3);
+}
+
+/* --- Gray ramp: DARK theme (white on black) -------------------------- */
+:root[data-theme='dark'] {
+  --g-0: #0a0a0a; /* page background */
+  --g-1: #121212;
+  --g-2: #1a1a1a; /* subtle fill */
+  --g-3: #2a2a2a; /* borders */
+  --g-4: #3a3a3a;
+  --g-5: #555555;
+  --g-6: #8a8a8a; /* muted text */
+  --g-7: #a8a8a8;
+  --g-8: #cccccc;
+  --g-9: #f2f2f2; /* primary text */
+  --g-10: #ffffff; /* pure white accents */
+
+  --bg: var(--g-0);
+  --bg-panel: var(--g-1);
+  --bg-subtle: var(--g-2);
+  --bg-inset: #050505;
+  --border: var(--g-3);
+  --border-strong: var(--g-5);
+  --text: var(--g-9);
+  --text-muted: var(--g-6);
+  --text-faint: var(--g-5);
+  --ink: var(--g-10);
+  --on-ink: var(--g-0);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 6px 24px rgba(0, 0, 0, 0.6);
+  --track: var(--g-3);
+}
+
+/* --- Reset ----------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--fs-md);
+  line-height: var(--lh-normal);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-tight);
+  letter-spacing: -0.01em;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+}
+
+code,
+.mono {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+}
+
+::selection {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+
+/* Scrollbar (monochrome) */
+* {
+  scrollbar-color: var(--g-5) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--g-4);
+  border-radius: var(--radius-pill);
+  border: 2px solid var(--bg);
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--g-5);
+}
