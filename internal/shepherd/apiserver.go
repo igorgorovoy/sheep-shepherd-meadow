@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"sheep/internal/dashboard"
 )
 
 type APIServer struct {
@@ -53,9 +55,24 @@ func NewAPIServer(addr string, store *Store, scheduler *Scheduler, logger *log.L
 	// Cluster info
 	mux.HandleFunc("/api/v1/info", api.handleInfo)
 
+	// Aggregate cluster summary (convenience endpoint for the dashboard)
+	mux.HandleFunc("/api/v1/cluster/summary", api.handleClusterSummary)
+
+	// Dashboard SPA: fallback handler for any non-API path. Registered on the
+	// root pattern, which the mux only matches when no more specific pattern
+	// (e.g. /api/v1/..., /healthz) applies, so API routes take precedence.
+	dashboardHandler := dashboard.Handler()
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasPrefix(r.URL.Path, "/api/") || r.URL.Path == "/healthz" {
+			http.NotFound(w, r)
+			return
+		}
+		dashboardHandler.ServeHTTP(w, r)
+	})
+
 	api.server = &http.Server{
 		Addr:         addr,
-		Handler:      api.logging(mux),
+		Handler:      api.logging(api.cors(mux)),
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,
 	}
@@ -77,6 +94,24 @@ func (api *APIServer) logging(next http.Handler) http.Handler {
 		start := time.Now()
 		next.ServeHTTP(w, r)
 		api.logger.Printf("%s %s %s", r.Method, r.URL.Path, time.Since(start))
+	})
+}
+
+// cors adds permissive CORS headers so a cross-origin dev SPA (e.g. the Vite
+// dev server on http://localhost:5173) can call the API on
+// http://localhost:9876. It answers preflight OPTIONS requests with 204.
+func (api *APIServer) cors(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		next.ServeHTTP(w, r)
 	})
 }
 
@@ -488,16 +523,60 @@ func (api *APIServer) handleEvents(w http.ResponseWriter, r *http.Request) {
 // --- Info ---
 
 func (api *APIServer) handleInfo(w http.ResponseWriter, _ *http.Request) {
+	respondJSON(w, http.StatusOK, api.clusterInfo())
+}
+
+// clusterInfo builds the map returned by /api/v1/info. It is shared with the
+// cluster summary endpoint.
+func (api *APIServer) clusterInfo() map[string]any {
 	nodes, _ := api.store.ListNodes()
 	pods, _ := api.store.ListPods("")
 
-	info := map[string]any{
+	return map[string]any{
 		"version":    "v0.1.0",
 		"name":       "shepherd",
 		"node_count": len(nodes),
 		"pod_count":  len(pods),
 	}
-	respondJSON(w, http.StatusOK, info)
+}
+
+// --- Cluster Summary ---
+
+func (api *APIServer) handleClusterSummary(w http.ResponseWriter, _ *http.Request) {
+	nodes, err := api.store.ListNodes()
+	if err != nil {
+		httpError(w, http.StatusInternalServerError, "list nodes: %v", err)
+		return
+	}
+	pods, err := api.store.ListPods("")
+	if err != nil {
+		httpError(w, http.StatusInternalServerError, "list pods: %v", err)
+		return
+	}
+	services, err := api.store.ListServices("default")
+	if err != nil {
+		httpError(w, http.StatusInternalServerError, "list services: %v", err)
+		return
+	}
+	deployments, err := api.store.ListDeployments("default")
+	if err != nil {
+		httpError(w, http.StatusInternalServerError, "list deployments: %v", err)
+		return
+	}
+	events, err := api.store.ListEvents(100)
+	if err != nil {
+		httpError(w, http.StatusInternalServerError, "list events: %v", err)
+		return
+	}
+
+	respondJSON(w, http.StatusOK, map[string]any{
+		"info":        api.clusterInfo(),
+		"nodes":       nodes,
+		"pods":        pods,
+		"deployments": deployments,
+		"services":    services,
+		"events":      events,
+	})
 }
 
 // --- Helpers ---

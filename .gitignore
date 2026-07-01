@@ -12,3 +12,10 @@ bin/
 .vscode/
 *.swp
 *.swo
+
+# Dashboard SPA build artifacts copied over the embedded placeholder.
+# Keep the committed placeholder index.html (and an optional .gitkeep) tracked;
+# ignore everything else copied in from web/dist at build time.
+internal/dashboard/static/*
+!internal/dashboard/static/index.html
+!internal/dashboard/static/.gitkeep
