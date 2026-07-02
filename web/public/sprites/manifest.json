@@ -2,7 +2,7 @@
   "version": 1,
   "tokenSize": 96,
   "dwarves": {
-    "roles": ["node-agent"],
+    "roles": ["node-agent", "runtime-smith", "scheduler-warden", "reconciler", "edge-tinker"],
     "states": ["idle", "work", "offline"],
     "path": "dwarves/{role}/{state}.png",
     "anchor": [0.5, 0.9]
@@ -20,11 +20,12 @@
     },
     "core": {
       "idle": "core/core-idle.png",
-      "high": "core/core-idle.png",
+      "high": "core/core-high.png",
       "anchor": [0.5, 0.9]
     },
     "vault": {
       "idle": "vault/vault-idle.png",
+      "active": "vault/vault-active.png",
       "anchor": [0.5, 0.9]
     },
     "pen": {
