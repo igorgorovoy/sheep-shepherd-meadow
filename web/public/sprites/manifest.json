@@ -2,38 +2,38 @@
   "version": 1,
   "tokenSize": 96,
   "dwarves": {
-    "roles": ["node-agent", "runtime-smith", "scheduler-warden", "reconciler", "edge-tinker"],
+    "roles": ["node-agent"],
     "states": ["idle", "work", "offline"],
-    "path": "dwarves/{role}/{state}.svg",
+    "path": "dwarves/{role}/{state}.png",
     "anchor": [0.5, 0.9]
   },
   "sheep": {
     "states": ["running", "pending", "failed", "succeeded", "walk"],
-    "path": "sheep/{state}.svg",
+    "path": "sheep/{state}.png",
     "anchor": [0.5, 0.85]
   },
   "structures": {
     "station": {
-      "idle": "stations/forge-idle.svg",
-      "active": "stations/forge-active.svg",
+      "idle": "stations/forge-idle.png",
+      "active": "stations/forge-active.png",
       "anchor": [0.5, 0.85]
     },
     "core": {
-      "idle": "core/core-idle.svg",
-      "high": "core/core-idle.svg",
+      "idle": "core/core-idle.png",
+      "high": "core/core-idle.png",
       "anchor": [0.5, 0.9]
     },
     "vault": {
-      "idle": "vault/vault-idle.svg",
+      "idle": "vault/vault-idle.png",
       "anchor": [0.5, 0.9]
     },
     "pen": {
-      "idle": "pen/stray-pen.svg",
+      "idle": "pen/stray-pen.png",
       "anchor": [0.5, 0.9]
     }
   },
   "tiles": {
-    "floor": "tiles/floor.svg",
+    "floor": "tiles/floor.png",
     "tileW": 256,
     "tileH": 128
   },
