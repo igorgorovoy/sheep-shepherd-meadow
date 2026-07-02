@@ -32,6 +32,10 @@ export async function bootstrapHall(
 
   const scene = new LivingHallScene()
 
+  // NOTE: do NOT pass the scene in `config.scene` — that auto-starts it during
+  // boot with no init data, so the scene's init() dereferences an undefined
+  // manifest and throws, and the game never reaches READY. Instead we boot with
+  // no scenes, then add + start it once with the manifest after READY.
   const game = new Phaser.Game({
     type: Phaser.AUTO, // WebGL with Canvas fallback
     parent: opts.parent,
@@ -45,10 +49,10 @@ export async function bootstrapHall(
       // SVG textures look best without pixelArt snapping.
       pixelArt: false,
     },
-    scene,
   })
 
-  // Wait until the scene has actually started so applyWorld isn't dropped.
+  // Wait until the game has booted, then add + start our scene with data so
+  // applyWorld isn't dropped. Guard the race where boot already completed.
   await new Promise<void>((resolve, reject) => {
     let settled = false
     const t = window.setTimeout(() => {
@@ -57,18 +61,19 @@ export async function bootstrapHall(
         reject(new Error('Phaser scene failed to start'))
       }
     }, 8000)
-    game.events.once(Phaser.Core.Events.READY, () => {
-      // start (or restart) our scene with the manifest + motion prefs.
-      game.scene.start('living-hall', {
+    const startScene = () => {
+      if (settled) return
+      settled = true
+      window.clearTimeout(t)
+      // add(key, scene, autoStart=true, data) → runs init/preload/create with data.
+      game.scene.add('living-hall', scene, true, {
         manifest,
         reducedMotion: opts.reducedMotion,
       })
-      if (!settled) {
-        settled = true
-        window.clearTimeout(t)
-        resolve()
-      }
-    })
+      resolve()
+    }
+    if (game.isBooted) startScene()
+    else game.events.once(Phaser.Core.Events.READY, startScene)
   })
 
   const getScene = (): LivingHallScene | undefined =>

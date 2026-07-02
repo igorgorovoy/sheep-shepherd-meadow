@@ -16,9 +16,9 @@ export type DwarfState = 'idle' | 'work' | 'offline'
 export type SheepState = 'running' | 'pending' | 'failed' | 'succeeded'
 export type CoreIntensity = 'idle' | 'low' | 'mid' | 'high'
 
-// Round-robin dwarf roles. node-agent is the only fully-authored role for the
-// §8 milestone; the rest resolve to node-agent art via the manifest fallback,
-// but we still assign distinct roles so labels/behaviour can differentiate.
+// Round-robin dwarf roles. All roles are authored (generated sprites under
+// web/public/sprites/dwarves/<role>/); a node's role can be pinned via the
+// `sheep.sh/role` label, otherwise it's assigned round-robin.
 export const DWARF_ROLES = [
   'node-agent',
   'runtime-smith',
