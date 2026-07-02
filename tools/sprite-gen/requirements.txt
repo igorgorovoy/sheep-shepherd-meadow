@@ -1,0 +1,12 @@
+# Local WC3/steampunk sprite generation (Apple Silicon / MPS)
+torch>=2.4
+diffusers>=0.31
+transformers>=4.44
+accelerate>=0.34
+safetensors>=0.4
+huggingface_hub>=0.25
+# transparent-background cutouts + post-processing
+rembg>=2.0
+onnxruntime>=1.19
+pillow>=10.4
+numpy>=1.26
