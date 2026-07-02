@@ -10,3 +10,7 @@ rembg>=2.0
 onnxruntime>=1.19
 pillow>=10.4
 numpy>=1.26
+# force 3.12-compatible numba/llvmlite (rembg->pymatting->numba would otherwise
+# resolve to an ancient llvmlite that hard-fails on Python >=3.10)
+numba>=0.60.0
+llvmlite>=0.43.0
