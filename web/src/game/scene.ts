@@ -108,11 +108,14 @@ export class LivingHallScene extends Phaser.Scene {
   }
 
   preload() {
-    // Load every sprite the manifest knows about. Phaser can rasterize SVGs
-    // via load.svg. Failures are tolerated (we check textures.exists later).
+    // Load every sprite the manifest knows about. SVGs are rasterized via
+    // load.svg; raster (PNG) sprites go through load.image. The manifest may
+    // mix both (e.g. generated PNGs replacing placeholder SVGs one at a time).
+    // Failures are tolerated (we check textures.exists later).
     for (const sprite of this.manifest.allSprites()) {
       if (this.textures.exists(sprite.key)) continue
-      this.load.svg(sprite.key, sprite.url)
+      if (sprite.url.endsWith('.svg')) this.load.svg(sprite.key, sprite.url)
+      else this.load.image(sprite.key, sprite.url)
     }
     // If a single asset 404s, don't abort the whole scene.
     this.load.on('loaderror', (file: Phaser.Loader.File) => {
