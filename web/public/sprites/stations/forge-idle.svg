@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120" width="160" height="120">
+ <g>
+  <!-- back pipes -->
+  <rect x="20" y="20" width="8" height="60" rx="4" fill="#6E4E22" stroke="#130F0A" stroke-width="1.5"/>
+  <rect x="132" y="20" width="8" height="60" rx="4" fill="#6E4E22" stroke="#130F0A" stroke-width="1.5"/>
+  <rect x="20" y="20" width="120" height="8" rx="4" fill="#8C5A2B" stroke="#130F0A" stroke-width="1.5"/>
+  <!-- workbench body -->
+  <rect x="30" y="60" width="100" height="46" rx="6" fill="#211A12" stroke="#6E4E22" stroke-width="2"/>
+  <rect x="34" y="64" width="92" height="10" rx="4" fill="#8C5A2B"/>
+  <!-- anvil -->
+  <path d="M64 78 h32 l-4 8 h-8 v10 h-8 v-10 h-8 z" fill="#5b6470" stroke="#2a2f36" stroke-width="1.5"/>
+  <!-- gauges (dim) -->
+  <circle cx="44" cy="88" r="8" fill="#130F0A" stroke="#6E4E22" stroke-width="2"/>
+  <line x1="44" y1="88" x2="48" y2="84" stroke="#6E4E22" stroke-width="1.5"/>
+  <circle cx="116" cy="88" r="8" fill="#130F0A" stroke="#6E4E22" stroke-width="2"/>
+  <line x1="116" y1="88" x2="112" y2="85" stroke="#6E4E22" stroke-width="1.5"/>
+  <!-- cold furnace mouth -->
+  <rect x="70" y="60" width="20" height="12" rx="3" fill="#130F0A" stroke="#6E4E22" stroke-width="1.5"/>
+ </g>
+</svg>
