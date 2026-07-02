@@ -3,7 +3,7 @@
   "_note": "SD1.5 (light, fp32 on MPS). Prompts are subject-first — CLIP truncates at 77 tokens, so keep style_anchor short and the subject leading.",
   "style_anchor": "Warcraft-3 Hearthstone hand-painted cartoon, steampunk dwarven, thick clean outlines, brass copper and teal glow on dark stone, single centered game token, plain grey background, no text",
   "negative": "text, letters, words, caption, watermark, signature, ui, hud, frame, border, multiple subjects, duplicate, collage, photo, photorealistic, 3d render, cgi, blurry, lowres, jpeg artifacts, extra limbs, deformed, mutated",
-  "defaults": { "steps": 30, "guidance": 7.0, "gen": 640, "transparent": true },
+  "defaults": { "steps": 24, "guidance": 7.0, "gen": 512, "transparent": true },
   "sprites": [
     { "key": "sheep-running",   "out": "sheep/running.png",   "w": 192, "h": 192, "seed": 1001,
       "prompt": "a plump cute cartoon sheep with thick cream-white wool, small dark face and legs, a slim brass collar with a bright GREEN glowing gem, lively and alert with head up, faint teal aether wisp" },
