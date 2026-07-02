@@ -1,8 +1,9 @@
 {
-  "model": "stabilityai/stable-diffusion-xl-base-1.0",
-  "style_anchor": "2D game sprite, Warcraft-III / Hearthstone hand-painted cartoon style, steampunk dwarven engineering theme. Thick clean dark outlines, painterly shading, warm brass copper and gold metal and dark stone, glowing teal aether energy and arcane purple runes as accents, dramatic top-left rim light, rich saturation, high detail. Single centered subject, 3/4 top-down game-token view, plain flat neutral grey background, no text, no logo, no border, no frame.",
+  "model": "Lykon/dreamshaper-8",
+  "_note": "SD1.5 (light, fp32 on MPS). Prompts are subject-first — CLIP truncates at 77 tokens, so keep style_anchor short and the subject leading.",
+  "style_anchor": "Warcraft-3 Hearthstone hand-painted cartoon, steampunk dwarven, thick clean outlines, brass copper and teal glow on dark stone, single centered game token, plain grey background, no text",
   "negative": "text, letters, words, caption, watermark, signature, ui, hud, frame, border, multiple subjects, duplicate, collage, photo, photorealistic, 3d render, cgi, blurry, lowres, jpeg artifacts, extra limbs, deformed, mutated",
-  "defaults": { "steps": 32, "guidance": 7.0, "gen": 1024, "transparent": true },
+  "defaults": { "steps": 30, "guidance": 7.0, "gen": 640, "transparent": true },
   "sprites": [
     { "key": "sheep-running",   "out": "sheep/running.png",   "w": 192, "h": 192, "seed": 1001,
       "prompt": "a plump cute cartoon sheep with thick cream-white wool, small dark face and legs, a slim brass collar with a bright GREEN glowing gem, lively and alert with head up, faint teal aether wisp" },
@@ -35,6 +36,39 @@
     { "key": "vault-idle", "out": "vault/vault-idle.png", "w": 384, "h": 448, "seed": 6001,
       "prompt": "a stone archway gateway sealed with glowing arcane purple runes, a faint purple nebula shimmering within the arch, dwarven stonework, mystical vault portal, no characters" },
     { "key": "pen-stray",  "out": "pen/stray-pen.png",   "w": 384, "h": 256, "seed": 7001,
-      "prompt": "a small empty fenced wooden holding pen with an open gate, a dim hanging lantern, dwarven rustic, isometric, no animals, no characters" }
+      "prompt": "a small empty fenced wooden holding pen with an open gate, a dim hanging lantern, dwarven rustic, isometric, no animals, no characters" },
+
+    { "key": "smith-idle",    "out": "dwarves/runtime-smith/idle.png",    "w": 256, "h": 256, "seed": 2101,
+      "prompt": "a stout dwarf blacksmith, braided ginger beard, brass helmet with teal goggles, steel-and-brass armor, resting a big forge hammer on his shoulder, standing" },
+    { "key": "smith-work",    "out": "dwarves/runtime-smith/work.png",    "w": 256, "h": 256, "seed": 2101,
+      "prompt": "a stout dwarf blacksmith, braided ginger beard, brass helmet with teal goggles, steel-and-brass armor, swinging a glowing forge hammer at an anvil, sparks, focused" },
+    { "key": "smith-offline", "out": "dwarves/runtime-smith/offline.png", "w": 256, "h": 256, "seed": 2101,
+      "prompt": "a stout dwarf blacksmith slumped exhausted on one knee, dark unlit goggles, dim desaturated grey metal armor, hammer on the ground, powered down" },
+
+    { "key": "warden-idle",    "out": "dwarves/scheduler-warden/idle.png",    "w": 256, "h": 256, "seed": 2201,
+      "prompt": "a stout dwarf overseer, braided grey beard, brass helmet with teal goggles, steel-and-brass armor, holding a brass control rod and a clipboard, standing alert" },
+    { "key": "warden-work",    "out": "dwarves/scheduler-warden/work.png",    "w": 256, "h": 256, "seed": 2201,
+      "prompt": "a stout dwarf overseer, braided grey beard, brass helmet with teal goggles, steel-and-brass armor, pulling brass control levers, directing work, focused" },
+    { "key": "warden-offline", "out": "dwarves/scheduler-warden/offline.png", "w": 256, "h": 256, "seed": 2201,
+      "prompt": "a stout dwarf overseer slumped exhausted on one knee, dark unlit goggles, dim desaturated grey metal armor, powered down" },
+
+    { "key": "recon-idle",    "out": "dwarves/reconciler/idle.png",    "w": 256, "h": 256, "seed": 2301,
+      "prompt": "a stout dwarf mechanic, braided blonde beard, brass helmet with teal goggles, steel-and-brass armor, holding an oversized brass gear and an oil can, standing" },
+    { "key": "recon-work",    "out": "dwarves/reconciler/work.png",    "w": 256, "h": 256, "seed": 2301,
+      "prompt": "a stout dwarf mechanic, braided blonde beard, brass helmet with teal goggles, steel-and-brass armor, fitting a glowing brass gear into a machine, focused" },
+    { "key": "recon-offline", "out": "dwarves/reconciler/offline.png", "w": 256, "h": 256, "seed": 2301,
+      "prompt": "a stout dwarf mechanic slumped exhausted on one knee, dark unlit goggles, dim desaturated grey metal armor, powered down" },
+
+    { "key": "tinker-idle",    "out": "dwarves/edge-tinker/idle.png",    "w": 256, "h": 256, "seed": 2401,
+      "prompt": "a stout dwarf tinkerer, braided dark brown beard, brass helmet with teal goggles, steel-and-brass armor, a backpack of copper pipes, holding a wrench, standing" },
+    { "key": "tinker-work",    "out": "dwarves/edge-tinker/work.png",    "w": 256, "h": 256, "seed": 2401,
+      "prompt": "a stout dwarf tinkerer, braided dark brown beard, brass helmet with teal goggles, steel-and-brass armor, tightening a copper pipe joint with a wrench, steam, focused" },
+    { "key": "tinker-offline", "out": "dwarves/edge-tinker/offline.png", "w": 256, "h": 256, "seed": 2401,
+      "prompt": "a stout dwarf tinkerer slumped exhausted on one knee, dark unlit goggles, dim desaturated grey metal armor, powered down" },
+
+    { "key": "core-high",   "out": "core/core-high.png",    "w": 512, "h": 640, "seed": 5002,
+      "prompt": "a tall steampunk steam-engine core at full power, riveted brass boiler with an intensely bright glowing teal energy tube, lots of steam venting, valves wide open, no characters" },
+    { "key": "vault-active", "out": "vault/vault-active.png", "w": 384, "h": 448, "seed": 6002,
+      "prompt": "a stone archway portal open and active, brilliant arcane purple light and floating crystals pouring out, glowing runes, dwarven, no characters" }
   ]
 }

@@ -32,19 +32,25 @@ def load_catalog():
 
 def build_pipe(model, device):
     import torch
-    from diffusers import StableDiffusionXLPipeline
-    dtype = torch.float16 if device in ("mps", "cuda") else torch.float32
-    print(f"→ loading {model} ({dtype}) on {device} … (first run downloads ~7 GB)")
-    kw = dict(torch_dtype=dtype, use_safetensors=True)
+    from diffusers import AutoPipelineForText2Image
+    # fp16 on MPS produces NaN/blank output; SDXL fp32 is too heavy for 16 GB.
+    # Default model is a light SD1.5 checkpoint run in fp32 on MPS.
+    dtype = torch.float16 if device == "cuda" else torch.float32
+    print(f"→ loading {model} ({dtype}) on {device} …")
     try:
-        pipe = StableDiffusionXLPipeline.from_pretrained(model, variant="fp16", **kw)
+        pipe = AutoPipelineForText2Image.from_pretrained(
+            model, torch_dtype=dtype, use_safetensors=True, variant="fp16")
     except Exception:
-        pipe = StableDiffusionXLPipeline.from_pretrained(model, **kw)
+        pipe = AutoPipelineForText2Image.from_pretrained(
+            model, torch_dtype=dtype, use_safetensors=True)
     pipe = pipe.to(device)
     pipe.set_progress_bar_config(disable=True)
+    # SD1.5 ships a safety checker that can blank a sprite on a false positive.
+    if hasattr(pipe, "safety_checker"):
+        pipe.safety_checker = None
+        pipe.requires_safety_checker = False
     try:
         pipe.enable_attention_slicing()
-        pipe.enable_vae_tiling()
     except Exception:
         pass
     return pipe
@@ -83,10 +89,33 @@ def diamond(img, w, h):
     return img
 
 
-def generate(cat, entry, pipe, args):
+def _is_blank(img):
+    # fp32 on MPS intermittently yields NaN latents that decode to a flat
+    # (near-uniform) image. A real sprite has structure → high stddev.
+    import numpy as np
+    return float(np.asarray(img.convert("RGB"), dtype="float32").std()) < 10.0
+
+
+def _gen_valid(pipe, prompt, neg, steps, guidance, gen, base, tries=6):
+    """Generate, retrying with a fresh seed while the output is blank/NaN."""
     import torch
+    for k in range(tries):
+        seed = base + k * 7
+        g = torch.Generator("cpu").manual_seed(seed)
+        img = pipe(prompt=prompt, negative_prompt=neg, num_inference_steps=steps,
+                   guidance_scale=guidance, width=gen, height=gen, generator=g).images[0]
+        if not _is_blank(img):
+            return img, seed
+        print(f"      · blank/NaN at seed {seed}; retrying")
+    return None, base
+
+
+def generate(cat, entry, pipe, args):
+    import torch  # noqa: F401 (kept for parity / future use)
     d = cat["defaults"]
-    prompt = f"{cat['style_anchor']} {entry['prompt']}"
+    # Subject FIRST, style after — SDXL/SD1.5 CLIP truncates at 77 tokens, so
+    # the subject must lead or it gets cut off.
+    prompt = f"{entry['prompt']}, {cat['style_anchor']}"
     steps = entry.get("steps", d["steps"])
     guidance = entry.get("guidance", d["guidance"])
     gen = d["gen"]
@@ -97,11 +126,10 @@ def generate(cat, entry, pipe, args):
     out.parent.mkdir(parents=True, exist_ok=True)
 
     for i in range(args.n):
-        seed = base_seed + i
-        g = torch.Generator("cpu").manual_seed(seed)
-        img = pipe(prompt=prompt, negative_prompt=cat["negative"],
-                   num_inference_steps=steps, guidance_scale=guidance,
-                   width=gen, height=gen, generator=g).images[0]
+        img, seed = _gen_valid(pipe, prompt, cat["negative"], steps, guidance, gen, base_seed + i)
+        if img is None:
+            print(f"   ✗ {entry['key']} still blank/NaN after retries — skipped")
+            continue
         if post == "diamond":
             img = diamond(img, entry["w"], entry["h"])
         elif transparent and not args.no_bg:
