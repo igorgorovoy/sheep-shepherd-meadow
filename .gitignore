@@ -1,7 +1,8 @@
-# Compiled binaries
-sheep
-sheepctl
-shepherd
+# Compiled binaries (root-anchored so they don't shadow paths like
+# web/public/sprites/sheep/ — a bare "sheep" pattern matches any such dir)
+/sheep
+/sheepctl
+/shepherd
 bin/
 
 # OS files
