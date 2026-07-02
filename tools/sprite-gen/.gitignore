@@ -3,3 +3,4 @@ __pycache__/
 *.pyc
 # raw/variant renders kept out of the repo; final sprites live in web/public/sprites/
 *.v[0-9]*.png
+*.log
