@@ -1,0 +1,40 @@
+{
+  "model": "stabilityai/stable-diffusion-xl-base-1.0",
+  "style_anchor": "2D game sprite, Warcraft-III / Hearthstone hand-painted cartoon style, steampunk dwarven engineering theme. Thick clean dark outlines, painterly shading, warm brass copper and gold metal and dark stone, glowing teal aether energy and arcane purple runes as accents, dramatic top-left rim light, rich saturation, high detail. Single centered subject, 3/4 top-down game-token view, plain flat neutral grey background, no text, no logo, no border, no frame.",
+  "negative": "text, letters, words, caption, watermark, signature, ui, hud, frame, border, multiple subjects, duplicate, collage, photo, photorealistic, 3d render, cgi, blurry, lowres, jpeg artifacts, extra limbs, deformed, mutated",
+  "defaults": { "steps": 32, "guidance": 7.0, "gen": 1024, "transparent": true },
+  "sprites": [
+    { "key": "sheep-running",   "out": "sheep/running.png",   "w": 192, "h": 192, "seed": 1001,
+      "prompt": "a plump cute cartoon sheep with thick cream-white wool, small dark face and legs, a slim brass collar with a bright GREEN glowing gem, lively and alert with head up, faint teal aether wisp" },
+    { "key": "sheep-pending",   "out": "sheep/pending.png",   "w": 192, "h": 192, "seed": 1002,
+      "prompt": "a plump cartoon sheep with cream wool, sitting and half-asleep, a slim brass collar with a warm AMBER glowing gem, calm, waiting" },
+    { "key": "sheep-failed",    "out": "sheep/failed.png",    "w": 192, "h": 192, "seed": 1003,
+      "prompt": "a cartoon sheep tipped over and collapsed on its side, a brass collar with a RED alarm gem, a small warning spark and a wisp of grey smoke, distressed" },
+    { "key": "sheep-succeeded", "out": "sheep/succeeded.png", "w": 192, "h": 192, "seed": 1004,
+      "prompt": "a plump cartoon sheep resting contentedly, slightly faded greyish wool, a dim brass collar, peaceful, eyes closed" },
+    { "key": "sheep-walk",      "out": "sheep/walk.png",      "w": 192, "h": 192, "seed": 1005,
+      "prompt": "a plump cartoon sheep with cream wool in a mid-stride walking pose, a brass collar with a green glowing gem" },
+
+    { "key": "dwarf-idle",    "out": "dwarves/node-agent/idle.png",    "w": 256, "h": 256, "seed": 2001,
+      "prompt": "a stout heroic dwarf engineer, thick braided auburn beard, riveted brass helmet with glowing teal goggles, battered steel-and-brass plate armor, leather tool-belt, holding a lantern and a satchel, standing calmly at ease, friendly-gruff" },
+    { "key": "dwarf-work",    "out": "dwarves/node-agent/work.png",    "w": 256, "h": 256, "seed": 2001,
+      "prompt": "the same stout dwarf engineer with braided auburn beard, brass helmet and glowing teal goggles, steel-and-brass armor, mid-action operating a glowing brass tool, focused and busy at a workbench" },
+    { "key": "dwarf-offline", "out": "dwarves/node-agent/offline.png", "w": 256, "h": 256, "seed": 2001,
+      "prompt": "the same dwarf engineer, slumped and exhausted with one knee down, goggles dark and unlit, dim desaturated greyish metal, powered-down, defeated posture" },
+
+    { "key": "station-idle",   "out": "stations/forge-idle.png",   "w": 512, "h": 384, "seed": 3001,
+      "prompt": "a dwarven forge workbench and brass control console with copper pipes, pressure gauges, a small anvil, a cold dark unlit furnace, isometric workstation, no characters" },
+    { "key": "station-active", "out": "stations/forge-active.png", "w": 512, "h": 384, "seed": 3001,
+      "prompt": "a dwarven forge workbench and brass control console, furnace glowing hot orange and teal, gauges lit up, teal steam rising from the pipes, active and running, isometric workstation, no characters" },
+
+    { "key": "tile-floor", "out": "tiles/floor.png", "w": 256, "h": 128, "seed": 4001, "postproc": "diamond",
+      "prompt": "top-down isometric dwarven stone flagstone floor tile, dark grey stone with faint brass inlay lines, seamless texture, flat lighting, no characters, no objects" },
+
+    { "key": "core-idle",  "out": "core/core-idle.png",  "w": 512, "h": 640, "seed": 5001,
+      "prompt": "a great central steampunk steam-engine core, a tall riveted brass boiler with a vertical glowing teal aether energy tube, big gears and pressure valves, imposing machine, no characters" },
+    { "key": "vault-idle", "out": "vault/vault-idle.png", "w": 384, "h": 448, "seed": 6001,
+      "prompt": "a stone archway gateway sealed with glowing arcane purple runes, a faint purple nebula shimmering within the arch, dwarven stonework, mystical vault portal, no characters" },
+    { "key": "pen-stray",  "out": "pen/stray-pen.png",   "w": 384, "h": 256, "seed": 7001,
+      "prompt": "a small empty fenced wooden holding pen with an open gate, a dim hanging lantern, dwarven rustic, isometric, no animals, no characters" }
+  ]
+}
