@@ -6,7 +6,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 echo "== 1/3  create venv (uv-managed Python 3.12) =="
-uv venv --python 3.12 .venv
+uv venv --python 3.12 --clear .venv
 
 echo "== 2/3  install deps =="
 uv pip install --python .venv -r requirements.txt
