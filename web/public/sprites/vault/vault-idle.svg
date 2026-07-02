@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 140" width="120" height="140">
+ <g>
+  <!-- stone arch -->
+  <path d="M16 132 V64 a44 44 0 0188 0 V132 z" fill="#211A12" stroke="#130F0A" stroke-width="2"/>
+  <path d="M28 132 V66 a32 32 0 0164 0 V132 z" fill="#130F0A"/>
+  <!-- rune glow -->
+  <circle cx="60" cy="70" r="18" fill="#9A6BE0" opacity="0.28"/>
+  <path d="M60 56 v28 M50 62 h20 M50 78 h20" stroke="#9A6BE0" stroke-width="2.4" fill="none" opacity="0.85"/>
+  <circle cx="60" cy="70" r="8" fill="none" stroke="#9A6BE0" stroke-width="2" opacity="0.7"/>
+  <!-- keystone -->
+  <rect x="52" y="16" width="16" height="14" rx="3" fill="#8C5A2B" stroke="#6E4E22" stroke-width="1.5"/>
+ </g>
+</svg>

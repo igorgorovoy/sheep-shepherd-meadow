@@ -683,63 +683,72 @@
   }
 }
 
-/* --- Pasture placeholder -------------------------------------------- */
-.pasture {
-  display: grid;
-  gap: var(--sp-5);
+/* --- Pasture / Living Hall ------------------------------------------- */
+.card__body--flush {
+  padding: 0;
 }
-.pasture__hero {
-  border: 1px dashed var(--border-strong);
+.living-hall {
+  position: relative;
+  width: 100%;
+  height: min(70vh, 640px);
+  min-height: 360px;
   border-radius: var(--radius-lg);
-  padding: var(--sp-8) var(--sp-6);
+  overflow: hidden;
+  background: #130f0a;
+}
+.living-hall__stage {
+  position: absolute;
+  inset: 0;
+}
+.living-hall__stage canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+.living-hall__overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-3);
   text-align: center;
-  background:
-    radial-gradient(circle at 20% 30%, var(--bg-subtle) 0 2px, transparent 3px)
-      0 0 / 26px 26px,
-    var(--bg-panel);
+  padding: var(--sp-6);
+  background: rgba(19, 15, 10, 0.82);
+  color: var(--text);
 }
-.pasture__mark {
-  font-size: 46px;
-  line-height: 1;
-}
-.pasture__title {
-  font-size: var(--fs-xl);
-  margin: var(--sp-4) 0 var(--sp-2);
-}
-.pasture__desc {
-  color: var(--text-muted);
-  max-width: 56ch;
-  margin: 0 auto;
+.living-hall__overlay p {
+  max-width: 48ch;
+  margin: 0;
   font-size: var(--fs-sm);
 }
-.pasture__pens {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: var(--sp-4);
+.living-hall__overlay--error strong {
+  font-size: var(--fs-lg);
 }
-.pen {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: var(--sp-4);
-  background: var(--bg-panel);
-}
-.pen__name {
+.living-hall__err {
   font-family: var(--font-mono);
   font-size: var(--fs-xs);
   color: var(--text-muted);
-  margin-bottom: var(--sp-3);
-  display: flex;
-  justify-content: space-between;
+  word-break: break-word;
 }
-.pen__flock {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--sp-2);
+.living-hall__spinner {
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--border-strong);
+  border-top-color: #37c7e9;
+  border-radius: 50%;
+  animation: living-hall-spin 0.8s linear infinite;
 }
-.sheep {
-  font-size: 20px;
-  opacity: 0.55;
-  filter: grayscale(1);
+@keyframes living-hall-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .living-hall__spinner {
+    animation: none;
+  }
 }
 
 /* --- Utilities ------------------------------------------------------- */
