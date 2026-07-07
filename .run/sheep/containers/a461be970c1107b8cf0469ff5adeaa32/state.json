@@ -1,0 +1,30 @@
+{
+  "id": "a461be970c1107b8cf0469ff5adeaa32",
+  "name": "wordpress-1-wordpress",
+  "image": "minimal",
+  "command": [
+    "/bin/sh",
+    "-c",
+    "echo '[wordpress-demo] Apache/PHP (simulated)'; echo \"DB_HOST=${WORDPRESS_DB_HOST}\"; while true; do echo \"[$(date)] serving wp-admin\"; sleep 15; done"
+  ],
+  "state": "running",
+  "pid": 95735,
+  "exit_code": 0,
+  "created_at": "2026-07-07T06:42:01.625157+02:00",
+  "started_at": "2026-07-07T06:42:01.626669+02:00",
+  "stopped_at": "0001-01-01T00:00:00Z",
+  "config": {
+    "hostname": "wordpress-1",
+    "env": [
+      "WORDPRESS_DB_HOST=postgres",
+      "WORDPRESS_DB_NAME=wordpress",
+      "WORDPRESS_DB_USER=wp"
+    ],
+    "work_dir": "",
+    "memory": 134217728,
+    "cpu_shares": 0,
+    "cpu_quota": 0,
+    "pids_limit": 0
+  },
+  "rootfs": "/Users/gorovoy/__SYNC__/projects/personal/sheep-shepherd-meadow/.run/sheep/overlay/a461be970c1107b8cf0469ff5adeaa32/merged"
+}
