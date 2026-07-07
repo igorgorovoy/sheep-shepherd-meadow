@@ -435,6 +435,8 @@ sheep rm web api box                             # remove several
 
 ### Meadow — image registry
 
+See **[Meadow Workflow](meadow-workflow.md)** for a full build → push → deploy guide.
+
 ```bash
 meadow --addr :5555                              # start the registry
 

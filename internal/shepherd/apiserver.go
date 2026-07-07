@@ -509,10 +509,37 @@ func (api *APIServer) updateDeployment(w http.ResponseWriter, r *http.Request, n
 }
 
 func (api *APIServer) deleteDeployment(w http.ResponseWriter, _ *http.Request, ns, name string) {
+	dep, err := api.store.GetDeployment(ns, name)
+	if err != nil {
+		httpError(w, http.StatusNotFound, "deployment %s not found", name)
+		return
+	}
+
+	pods, _ := api.store.ListPods(ns)
+	var deletedPods int
+	for _, pod := range pods {
+		if matchLabels(pod.Metadata.Labels, dep.Spec.Selector) {
+			deletedPods++
+		}
+	}
+
 	if err := api.store.DeleteDeployment(ns, name); err != nil {
 		httpError(w, http.StatusNotFound, "deployment %s not found", name)
 		return
 	}
+
+	msg := fmt.Sprintf("Deployment %s deleted", name)
+	if deletedPods > 0 {
+		msg = fmt.Sprintf("Deployment %s deleted (%d pods cascaded)", name, deletedPods)
+	}
+	api.store.RecordEvent(Event{
+		Type:      "Normal",
+		Reason:    "Deleted",
+		Message:   msg,
+		Object:    "deployment/" + name,
+		Timestamp: time.Now(),
+	})
+
 	w.WriteHeader(http.StatusNoContent)
 }
 

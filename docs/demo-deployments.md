@@ -326,6 +326,7 @@ sudo sheep pull redis:7-alpine
 
 ## Див. також
 
+- [`meadow-workflow.md`](meadow-workflow.md) — збірка образу, push у Meadow, deploy
 - [`getting-started.md`](getting-started.md) — збірка, Sheep runtime, Shepherd
 - [`dashboard.md`](dashboard.md) — API summary, embedded SPA
 - [`examples/demo/README.md`](../examples/demo/README.md) — короткий довідник по файлах

@@ -2,7 +2,7 @@
 
 Приклади показують, як деплоїти «існуючі контейнери» у Shepherd.
 
-> Повний посібник: [`docs/demo-deployments.md`](../../docs/demo-deployments.md)
+> Повний посібник: [`docs/meadow-workflow.md`](../../docs/meadow-workflow.md) · [`docs/demo-deployments.md`](../../docs/demo-deployments.md)
 
 ## Важливо про платформу
 

@@ -129,10 +129,14 @@ func (a *Agent) reconcilePods() {
 		return
 	}
 
+	podNamesOnNode := make(map[string]struct{})
+
 	for _, pod := range pods {
 		if pod.Spec.NodeName != a.nodeName {
 			continue
 		}
+
+		podNamesOnNode[pod.Metadata.Name] = struct{}{}
 
 		switch pod.Status.Phase {
 		case PodPending:
@@ -141,6 +145,31 @@ func (a *Agent) reconcilePods() {
 		case PodRunning:
 			// Check health of running pods
 			a.checkPod(pod)
+		}
+	}
+
+	a.stopOrphanPodContainers(podNamesOnNode)
+}
+
+// stopOrphanPodContainers stops containers whose pod was removed from the API
+// (e.g. deployment cascade delete). Agent-managed pods set Config.Hostname to
+// the pod name; manually created containers use a random hostname.
+func (a *Agent) stopOrphanPodContainers(activePods map[string]struct{}) {
+	for _, c := range a.mgr.List(true) {
+		podName := c.Config.Hostname
+		if podName == "" {
+			continue
+		}
+		if _, ok := activePods[podName]; ok {
+			continue
+		}
+
+		a.logger.Printf("agent: stopping orphan container %s (pod %s removed)", c.Name, podName)
+		if err := a.mgr.Stop(c.ID); err != nil {
+			a.logger.Printf("agent: stop orphan container %s: %v", c.Name, err)
+		}
+		if err := a.mgr.Remove(c.ID); err != nil {
+			a.logger.Printf("agent: remove orphan container %s: %v", c.Name, err)
 		}
 	}
 }

@@ -231,7 +231,33 @@ func (s *Store) DeleteDeployment(namespace, name string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	return s.delete(bucketDeployments, nsKey(namespace, name))
+	key := nsKey(namespace, name)
+	var dep Deployment
+	if err := s.get(bucketDeployments, key, &dep); err != nil {
+		return err
+	}
+
+	var podNames []string
+	if err := s.list(bucketPods, namespace, func(data []byte) error {
+		var pod Pod
+		if err := json.Unmarshal(data, &pod); err != nil {
+			return err
+		}
+		if matchLabels(pod.Metadata.Labels, dep.Spec.Selector) {
+			podNames = append(podNames, pod.Metadata.Name)
+		}
+		return nil
+	}); err != nil {
+		return err
+	}
+
+	for _, podName := range podNames {
+		if err := s.delete(bucketPods, nsKey(namespace, podName)); err != nil {
+			return err
+		}
+	}
+
+	return s.delete(bucketDeployments, key)
 }
 
 // --- Node Operations ---
