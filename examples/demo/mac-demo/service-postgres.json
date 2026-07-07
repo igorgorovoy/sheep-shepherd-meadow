@@ -1,0 +1,9 @@
+{
+  "kind": "Service",
+  "metadata": { "name": "postgres", "namespace": "default" },
+  "spec": {
+    "selector": { "app": "postgres" },
+    "ports": [{ "name": "pg", "port": 5432, "target_port": 5432 }],
+    "type": "ClusterIP"
+  }
+}

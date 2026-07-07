@@ -1,6 +1,7 @@
 import { Badge } from '../components/Badge'
 import { PageHeader } from '../components/PageHeader'
 import { EmptyState, ErrorState, LoadingRows } from '../components/states'
+import { useRowNavigate } from '../lib/navigation'
 import { usePageData } from './context'
 import type { Service } from '../api/types'
 
@@ -14,6 +15,7 @@ function portLabel(service: Service): string[] {
 export function Services() {
   const { data, loading, error } = usePageData()
   const services = data?.services ?? []
+  const onRow = useRowNavigate()
 
   if (loading && !data)
     return (
@@ -57,7 +59,13 @@ export function Services() {
                 const ports = portLabel(s)
                 const endpoints = s.status?.endpoints?.length ?? 0
                 return (
-                  <tr key={s.metadata.uid || s.metadata.name}>
+                  <tr
+                    key={s.metadata.uid || s.metadata.name}
+                    className="table-row--clickable"
+                    onClick={onRow(
+                      `/services/${s.metadata.namespace}/${s.metadata.name}`,
+                    )}
+                  >
                     <td className="td-name">{s.metadata.name}</td>
                     <td className="td-muted">{s.metadata.namespace}</td>
                     <td>

@@ -46,6 +46,7 @@ const SHEEP_STATE_COLOR: Record<SheepModel['state'], number> = {
 export interface SceneInitData {
   manifest: Manifest
   reducedMotion: boolean
+  onNavigate?: (path: string) => void
 }
 
 // ---- iso helpers ----------------------------------------------------------
@@ -92,6 +93,8 @@ export class LivingHallScene extends Phaser.Scene {
   // fx we've already fired (id set) so warnings don't re-trigger endlessly.
   private firedFx = new Set<string>()
 
+  private onNavigate?: (path: string) => void
+
   // The most recent world we were handed before preload finished.
   private pendingWorld: WorldModel | null = null
   private ready = false
@@ -103,6 +106,7 @@ export class LivingHallScene extends Phaser.Scene {
   init(data: SceneInitData) {
     this.manifest = data.manifest
     this.reducedMotion = data.reducedMotion
+    this.onNavigate = data.onNavigate
     this.tileW = this.manifest.tileW
     this.tileH = this.manifest.tileH
   }
@@ -198,6 +202,24 @@ export class LivingHallScene extends Phaser.Scene {
       // sheep re-home on next diff; nothing precise needed here.
       void actor
     }
+  }
+
+  private bindActorNavigate(
+    container: Phaser.GameObjects.Container,
+    path: string,
+    w: number,
+    h: number,
+  ) {
+    const hit = new Phaser.Geom.Rectangle(-w / 2, -h, w, h)
+    container.setSize(w, h)
+    container.setInteractive(hit, Phaser.Geom.Rectangle.Contains)
+    if (container.input) {
+      container.input.cursor = 'pointer'
+    }
+    container.removeAllListeners('pointerdown')
+    container.on('pointerdown', () => {
+      this.onNavigate?.(path)
+    })
   }
 
   // ---- sprite / placeholder factory --------------------------------------
@@ -322,6 +344,7 @@ export class LivingHallScene extends Phaser.Scene {
         actor = { container, stateKey: '', homeX: p.x, homeY: p.y }
         container.setPosition(p.x, p.y)
         container.setDepth(p.y)
+        this.bindActorNavigate(container, `/nodes/${st.nodeName}`, 120, 80)
         this.stationActors.set(st.id, actor)
       } else {
         this.moveActor(actor, p.x, p.y)
@@ -465,6 +488,12 @@ export class LivingHallScene extends Phaser.Scene {
           homeX: target.x,
           homeY: target.y,
         }
+        this.bindActorNavigate(
+          container,
+          `/pods/${sh.podNamespace}/${sh.podName}`,
+          48,
+          40,
+        )
         this.sheepActors.set(sh.id, actor)
         this.startSheepBob(actor, sh.state)
       } else {
@@ -593,6 +622,7 @@ export class LivingHallScene extends Phaser.Scene {
         60,
         90,
       )
+      this.bindActorNavigate(this.vaultContainer, '/meadow', 70, 90)
       this.placeStructures()
     }
     this.vaultContainer.setAlpha(active ? 1 : 0.55)

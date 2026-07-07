@@ -47,6 +47,7 @@ export interface StationModel {
 export interface SheepModel {
   id: string // stable: pod uid (falls back to name)
   podName: string
+  podNamespace: string
   nodeName: string | null // null => stray pen
   state: SheepState
   label: string
@@ -139,7 +140,10 @@ function mapWarningFx(
   return out
 }
 
-export function mapClusterToWorld(summary: ClusterSummary | null): WorldModel {
+export function mapClusterToWorld(
+  summary: ClusterSummary | null,
+  meadowRepoCount = 0,
+): WorldModel {
   const nodes = summary?.nodes ?? []
   const pods = summary?.pods ?? []
   const events = summary?.events ?? []
@@ -203,6 +207,7 @@ export function mapClusterToWorld(summary: ClusterSummary | null): WorldModel {
     return {
       id: sheepId(pod),
       podName: pod.metadata?.name ?? 'pod',
+      podNamespace: pod.metadata?.namespace ?? 'default',
       nodeName: nn,
       state: podPhaseToSheep(pod.status?.phase),
       label: pod.metadata?.name ?? 'pod',
@@ -226,7 +231,7 @@ export function mapClusterToWorld(summary: ClusterSummary | null): WorldModel {
     dwarves,
     sheep,
     core,
-    vaultActive: deployments.length > 0,
+    vaultActive: meadowRepoCount > 0 || deployments.length > 0,
     fx,
   }
 }

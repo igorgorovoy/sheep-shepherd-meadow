@@ -1,5 +1,7 @@
 import { formatRelativeTime } from '../lib/format'
 import type { Theme } from '../hooks/useTheme'
+import type { NamespaceFilter } from '../api/types'
+import { NamespaceSelect } from './NamespaceSelect'
 
 export function Topbar({
   title,
@@ -10,6 +12,11 @@ export function Topbar({
   onToggleMenu,
   theme,
   onToggleTheme,
+  namespace,
+  namespaces,
+  onNamespaceChange,
+  onApply,
+  onSettings,
 }: {
   title: string
   healthy: boolean
@@ -19,6 +26,11 @@ export function Topbar({
   onToggleMenu: () => void
   theme: Theme
   onToggleTheme: () => void
+  namespace: NamespaceFilter
+  namespaces: string[]
+  onNamespaceChange: (ns: NamespaceFilter) => void
+  onApply: () => void
+  onSettings: () => void
 }) {
   return (
     <header className="topbar">
@@ -35,6 +47,12 @@ export function Topbar({
       <div className="topbar__spacer" />
 
       <div className="topbar__meta">
+        <NamespaceSelect
+          value={namespace}
+          namespaces={namespaces}
+          onChange={onNamespaceChange}
+        />
+
         <span
           className={`conn ${healthy ? 'conn--up' : 'conn--down'}`}
           title={healthy ? 'Shepherd API reachable' : 'Shepherd API unreachable'}
@@ -59,6 +77,25 @@ export function Topbar({
           <span className={refreshing ? 'btn__spin' : ''} aria-hidden>
             ↻
           </span>
+        </button>
+
+        <button
+          type="button"
+          className="btn"
+          onClick={onApply}
+          title="Apply JSON manifest"
+        >
+          Apply
+        </button>
+
+        <button
+          type="button"
+          className="btn btn--icon"
+          onClick={onSettings}
+          aria-label="Settings"
+          title="API settings"
+        >
+          <span aria-hidden>⚙</span>
         </button>
 
         <button

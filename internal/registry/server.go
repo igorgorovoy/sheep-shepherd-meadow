@@ -13,15 +13,17 @@ import (
 
 // Server is the Meadow registry HTTP server.
 type Server struct {
-	storage *Storage
-	logger  *log.Logger
-	server  *http.Server
+	storage  *Storage
+	logger   *log.Logger
+	server   *http.Server
+	apiToken string
 }
 
 func NewServer(addr string, storage *Storage, logger *log.Logger) *Server {
 	s := &Server{
-		storage: storage,
-		logger:  logger,
+		storage:  storage,
+		logger:   logger,
+		apiToken: meadowAuthToken(),
 	}
 
 	mux := http.NewServeMux()
@@ -32,12 +34,17 @@ func NewServer(addr string, storage *Storage, logger *log.Logger) *Server {
 	// Meadow-specific endpoints
 	mux.HandleFunc("/meadow/stats", s.handleStats)
 	mux.HandleFunc("/meadow/stats/", s.handleRepoStats)
+	mux.HandleFunc("/meadow/auth/status", s.handleMeadowAuthStatus)
 
 	s.server = &http.Server{
 		Addr:         addr,
-		Handler:      s.logging(mux),
+		Handler:      s.logging(s.cors(s.authRequireBearer(mux))),
 		ReadTimeout:  30 * time.Second,
 		WriteTimeout: 5 * time.Minute,
+	}
+
+	if s.apiToken != "" {
+		logger.Printf("Meadow API token auth enabled (MEADOW_API_TOKEN)")
 	}
 
 	return s

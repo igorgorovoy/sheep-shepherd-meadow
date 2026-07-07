@@ -18,6 +18,7 @@ type APIServer struct {
 	scheduler *Scheduler
 	server    *http.Server
 	logger    *log.Logger
+	apiToken  string
 }
 
 func NewAPIServer(addr string, store *Store, scheduler *Scheduler, logger *log.Logger) *APIServer {
@@ -25,6 +26,7 @@ func NewAPIServer(addr string, store *Store, scheduler *Scheduler, logger *log.L
 		store:     store,
 		scheduler: scheduler,
 		logger:    logger,
+		apiToken:  authToken(),
 	}
 
 	mux := http.NewServeMux()
@@ -58,6 +60,12 @@ func NewAPIServer(addr string, store *Store, scheduler *Scheduler, logger *log.L
 	// Aggregate cluster summary (convenience endpoint for the dashboard)
 	mux.HandleFunc("/api/v1/cluster/summary", api.handleClusterSummary)
 
+	// Namespaces (derived from namespaced resource keys)
+	mux.HandleFunc("/api/v1/namespaces", api.handleNamespaces)
+
+	// Auth status (public when token is configured)
+	mux.HandleFunc("/api/v1/auth/status", api.handleAuthStatus)
+
 	// Dashboard SPA: fallback handler for any non-API path. Registered on the
 	// root pattern, which the mux only matches when no more specific pattern
 	// (e.g. /api/v1/..., /healthz) applies, so API routes take precedence.
@@ -72,9 +80,13 @@ func NewAPIServer(addr string, store *Store, scheduler *Scheduler, logger *log.L
 
 	api.server = &http.Server{
 		Addr:         addr,
-		Handler:      api.logging(api.cors(mux)),
+		Handler:      api.logging(api.cors(api.authRequireBearer(mux))),
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,
+	}
+
+	if api.apiToken != "" {
+		logger.Printf("API token auth enabled (SHEPHERD_API_TOKEN)")
 	}
 
 	return api
@@ -103,8 +115,8 @@ func (api *APIServer) logging(next http.Handler) http.Handler {
 func (api *APIServer) cors(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusNoContent)
@@ -520,17 +532,38 @@ func (api *APIServer) handleEvents(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, events)
 }
 
+// --- Auth status ---
+
+func (api *APIServer) handleAuthStatus(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	respondJSON(w, http.StatusOK, map[string]any{
+		"auth_required": api.apiToken != "",
+	})
+}
+
 // --- Info ---
 
 func (api *APIServer) handleInfo(w http.ResponseWriter, _ *http.Request) {
-	respondJSON(w, http.StatusOK, api.clusterInfo())
+	respondJSON(w, http.StatusOK, api.clusterInfo(""))
 }
 
-// clusterInfo builds the map returned by /api/v1/info. It is shared with the
-// cluster summary endpoint.
-func (api *APIServer) clusterInfo() map[string]any {
+// summaryNamespace parses ?namespace= from a request. Empty or "all" lists
+// every namespace; a specific name scopes namespaced resources.
+func summaryNamespace(r *http.Request) string {
+	ns := strings.TrimSpace(r.URL.Query().Get("namespace"))
+	if ns == "" || ns == "all" {
+		return ""
+	}
+	return ns
+}
+
+// clusterInfo builds the map returned by /api/v1/info and cluster summary.
+func (api *APIServer) clusterInfo(listNS string) map[string]any {
 	nodes, _ := api.store.ListNodes()
-	pods, _ := api.store.ListPods("")
+	pods, _ := api.store.ListPods(listNS)
 
 	return map[string]any{
 		"version":    "v0.1.0",
@@ -540,25 +573,54 @@ func (api *APIServer) clusterInfo() map[string]any {
 	}
 }
 
+// --- Namespaces ---
+
+func (api *APIServer) handleNamespaces(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	namespaces, err := api.store.ListNamespaces()
+	if err != nil {
+		httpError(w, http.StatusInternalServerError, "list namespaces: %v", err)
+		return
+	}
+	if namespaces == nil {
+		namespaces = []string{}
+	}
+
+	respondJSON(w, http.StatusOK, map[string]any{
+		"namespaces": namespaces,
+	})
+}
+
 // --- Cluster Summary ---
 
-func (api *APIServer) handleClusterSummary(w http.ResponseWriter, _ *http.Request) {
+func (api *APIServer) handleClusterSummary(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	listNS := summaryNamespace(r)
+
 	nodes, err := api.store.ListNodes()
 	if err != nil {
 		httpError(w, http.StatusInternalServerError, "list nodes: %v", err)
 		return
 	}
-	pods, err := api.store.ListPods("")
+	pods, err := api.store.ListPods(listNS)
 	if err != nil {
 		httpError(w, http.StatusInternalServerError, "list pods: %v", err)
 		return
 	}
-	services, err := api.store.ListServices("default")
+	services, err := api.store.ListServices(listNS)
 	if err != nil {
 		httpError(w, http.StatusInternalServerError, "list services: %v", err)
 		return
 	}
-	deployments, err := api.store.ListDeployments("default")
+	deployments, err := api.store.ListDeployments(listNS)
 	if err != nil {
 		httpError(w, http.StatusInternalServerError, "list deployments: %v", err)
 		return
@@ -568,14 +630,20 @@ func (api *APIServer) handleClusterSummary(w http.ResponseWriter, _ *http.Reques
 		httpError(w, http.StatusInternalServerError, "list events: %v", err)
 		return
 	}
+	namespaces, err := api.store.ListNamespaces()
+	if err != nil {
+		httpError(w, http.StatusInternalServerError, "list namespaces: %v", err)
+		return
+	}
 
 	respondJSON(w, http.StatusOK, map[string]any{
-		"info":        api.clusterInfo(),
+		"info":        api.clusterInfo(listNS),
 		"nodes":       nodes,
 		"pods":        pods,
 		"deployments": deployments,
 		"services":    services,
 		"events":      events,
+		"namespaces":  namespaces,
 	})
 }
 

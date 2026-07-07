@@ -1,8 +1,11 @@
 import { useOutletContext } from 'react-router-dom'
 import type { ClusterDataState } from '../hooks/useClusterData'
+import type { NamespaceFilter } from '../api/types'
 
-// Context passed from the Layout <Outlet> down to each page.
-export type PageContext = ClusterDataState
+export interface PageContext extends ClusterDataState {
+  namespace: NamespaceFilter
+  setNamespace: (ns: NamespaceFilter) => void
+}
 
 export function usePageData(): PageContext {
   return useOutletContext<PageContext>()

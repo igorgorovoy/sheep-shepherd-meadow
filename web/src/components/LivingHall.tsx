@@ -1,21 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import type { ClusterSummary } from '../api/types'
 import type { HallHandle } from '../game/bootstrap'
-
-// LivingHall mounts a lazily-loaded Phaser scene into a <div> and streams
-// cluster snapshots into it WITHOUT re-mounting. Phaser and the scene are
-// pulled in via dynamic import() from ../game/bootstrap so they code-split out
-// of the initial bundle.
-//
-// Data flow:
-//   - `summary` (the polled ClusterSummary) is pushed into the running scene
-//     on every change via handle.apply(); the scene diffs it internally.
-//   - The component NEVER re-creates the game when data changes.
-//
-// Graceful degradation:
-//   - If Phaser/WebGL init or the sprite manifest fetch fails, we surface a
-//     fallback notice and keep the rest of the app usable.
-//   - prefers-reduced-motion disables idle motion (state is still shown).
 
 type Status = 'loading' | 'ready' | 'error'
 
@@ -27,18 +13,25 @@ function prefersReducedMotion(): boolean {
   )
 }
 
-export function LivingHall({ summary }: { summary: ClusterSummary | null }) {
+export function LivingHall({
+  summary,
+  meadowRepoCount = 0,
+}: {
+  summary: ClusterSummary | null
+  meadowRepoCount?: number
+}) {
+  const navigate = useNavigate()
   const mountRef = useRef<HTMLDivElement | null>(null)
   const handleRef = useRef<HallHandle | null>(null)
   const [status, setStatus] = useState<Status>('loading')
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
-  // Keep the freshest summary in a ref so the async bootstrap can apply it
-  // as soon as the scene is live, even if data arrived first.
-  const latest = useRef<ClusterSummary | null>(summary)
-  latest.current = summary
+  const latest = useRef({ summary, meadowRepoCount })
+  latest.current = { summary, meadowRepoCount }
 
-  // Mount the game exactly once.
+  const onNavigateRef = useRef(navigate)
+  onNavigateRef.current = navigate
+
   useEffect(() => {
     let cancelled = false
     const controller = new AbortController()
@@ -48,13 +41,13 @@ export function LivingHall({ summary }: { summary: ClusterSummary | null }) {
     setStatus('loading')
     setErrorMsg(null)
 
-    // Dynamic import -> Phaser lands in its own chunk.
     import('../game/bootstrap')
       .then(({ bootstrapHall }) =>
         bootstrapHall({
           parent,
           reducedMotion: prefersReducedMotion(),
           signal: controller.signal,
+          onNavigate: (path) => onNavigateRef.current(path),
         }),
       )
       .then((handle) => {
@@ -63,12 +56,12 @@ export function LivingHall({ summary }: { summary: ClusterSummary | null }) {
           return
         }
         handleRef.current = handle
-        handle.apply(latest.current)
+        const { summary: s, meadowRepoCount: m } = latest.current
+        handle.apply(s, m)
         setStatus('ready')
       })
       .catch((err: unknown) => {
         if (cancelled) return
-        // eslint-disable-next-line no-console
         console.error('[living-hall] failed to initialise', err)
         setErrorMsg(err instanceof Error ? err.message : 'Unknown error')
         setStatus('error')
@@ -82,12 +75,11 @@ export function LivingHall({ summary }: { summary: ClusterSummary | null }) {
     }
   }, [])
 
-  // Push new snapshots into the live scene (no re-mount).
   useEffect(() => {
     if (status === 'ready') {
-      handleRef.current?.apply(summary)
+      handleRef.current?.apply(summary, meadowRepoCount)
     }
-  }, [summary, status])
+  }, [summary, meadowRepoCount, status])
 
   return (
     <div className="living-hall">
@@ -95,7 +87,7 @@ export function LivingHall({ summary }: { summary: ClusterSummary | null }) {
         ref={mountRef}
         className="living-hall__stage"
         role="img"
-        aria-label="Animated cluster visualization: nodes as forge stations, pods as sheep"
+        aria-label="Animated cluster visualization. Click stations, sheep, or the vault for details."
       />
       {status === 'loading' && (
         <div className="living-hall__overlay" aria-live="polite">

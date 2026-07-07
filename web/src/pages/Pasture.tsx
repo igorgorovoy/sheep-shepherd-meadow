@@ -1,5 +1,6 @@
 import { PageHeader } from '../components/PageHeader'
 import { LivingHall } from '../components/LivingHall'
+import { useMeadowData } from '../hooks/useMeadowData'
 import { usePageData } from './context'
 
 /*
@@ -24,6 +25,7 @@ import { usePageData } from './context'
 
 export function Pasture() {
   const { data, error } = usePageData()
+  const meadow = useMeadowData()
 
   return (
     <>
@@ -39,7 +41,10 @@ export function Pasture() {
       )}
       <div className="card">
         <div className="card__body card__body--flush">
-          <LivingHall summary={data} />
+          <LivingHall
+            summary={data}
+            meadowRepoCount={meadow.data?.repositories ?? 0}
+          />
         </div>
       </div>
     </>

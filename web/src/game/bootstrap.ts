@@ -12,7 +12,7 @@ import { mapClusterToWorld } from './mapper'
 import type { ClusterSummary } from '../api/types'
 
 export interface HallHandle {
-  apply: (summary: ClusterSummary | null) => void
+  apply: (summary: ClusterSummary | null, meadowRepoCount?: number) => void
   destroy: () => void
 }
 
@@ -21,6 +21,7 @@ export interface BootstrapOptions {
   reducedMotion: boolean
   spritesBase?: string
   signal?: AbortSignal
+  onNavigate?: (path: string) => void
 }
 
 // Create the Phaser game inside `parent`. Rejects if WebGL/Canvas or the
@@ -69,6 +70,7 @@ export async function bootstrapHall(
       game.scene.add('living-hall', scene, true, {
         manifest,
         reducedMotion: opts.reducedMotion,
+        onNavigate: opts.onNavigate,
       })
       resolve()
     }
@@ -80,10 +82,10 @@ export async function bootstrapHall(
     game.scene.getScene('living-hall') as LivingHallScene | undefined
 
   return {
-    apply(summary: ClusterSummary | null) {
+    apply(summary: ClusterSummary | null, meadowRepoCount = 0) {
       const s = getScene()
       if (!s) return
-      s.applyWorld(mapClusterToWorld(summary))
+      s.applyWorld(mapClusterToWorld(summary, meadowRepoCount))
     },
     destroy() {
       game.destroy(true)

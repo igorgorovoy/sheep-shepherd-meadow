@@ -1,0 +1,29 @@
+{
+  "kind": "Deployment",
+  "metadata": {
+    "name": "tinynginx",
+    "namespace": "default",
+    "labels": { "app": "tinynginx", "tier": "frontend" }
+  },
+  "spec": {
+    "replicas": 2,
+    "selector": { "app": "tinynginx" },
+    "template": {
+      "metadata": {
+        "labels": { "app": "tinynginx", "tier": "frontend" }
+      },
+      "spec": {
+        "containers": [
+          {
+            "name": "web",
+            "image": "tinynginx",
+            "command": ["/bin/tinynginx", "-port", "8888"],
+            "ports": [{ "container_port": 8888 }],
+            "resources": { "memory": 33554432, "cpu": 100 }
+          }
+        ],
+        "restart_policy": "Always"
+      }
+    }
+  }
+}

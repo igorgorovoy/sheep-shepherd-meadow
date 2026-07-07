@@ -175,4 +175,28 @@ export interface ClusterSummary {
   services?: Service[]
   deployments?: Deployment[]
   events?: Event[]
+  namespaces?: string[]
+}
+
+export type NamespaceFilter = 'all' | string
+
+export interface AuthStatus {
+  auth_required: boolean
+}
+
+export interface MeadowRepoStats {
+  name: string
+  tags: string[]
+  total_size: number
+}
+
+export interface MeadowStats {
+  registry: string
+  version: string
+  repositories: number
+  details: MeadowRepoStats[]
+}
+
+export interface MeadowCatalog {
+  repositories: string[]
 }

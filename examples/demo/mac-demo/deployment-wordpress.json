@@ -1,0 +1,37 @@
+{
+  "kind": "Deployment",
+  "metadata": {
+    "name": "wordpress",
+    "namespace": "default",
+    "labels": { "app": "wordpress", "tier": "frontend" }
+  },
+  "spec": {
+    "replicas": 2,
+    "selector": { "app": "wordpress" },
+    "template": {
+      "metadata": {
+        "labels": { "app": "wordpress", "tier": "frontend" }
+      },
+      "spec": {
+        "containers": [
+          {
+            "name": "wordpress",
+            "image": "minimal",
+            "command": [
+              "/bin/sh",
+              "-c",
+              "echo '[wordpress-demo] Apache/PHP (simulated)'; echo \"DB_HOST=${WORDPRESS_DB_HOST}\"; while true; do echo \"[$(date)] serving wp-admin\"; sleep 15; done"
+            ],
+            "env": {
+              "WORDPRESS_DB_HOST": "postgres",
+              "WORDPRESS_DB_NAME": "wordpress",
+              "WORDPRESS_DB_USER": "wp"
+            },
+            "resources": { "memory": 134217728, "cpu": 200 }
+          }
+        ],
+        "restart_policy": "Always"
+      }
+    }
+  }
+}

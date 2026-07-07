@@ -1,0 +1,37 @@
+{
+  "kind": "Deployment",
+  "metadata": {
+    "name": "postgres-db",
+    "namespace": "default",
+    "labels": { "app": "postgres", "tier": "database" }
+  },
+  "spec": {
+    "replicas": 1,
+    "selector": { "app": "postgres" },
+    "template": {
+      "metadata": {
+        "labels": { "app": "postgres", "tier": "database" }
+      },
+      "spec": {
+        "containers": [
+          {
+            "name": "postgres",
+            "image": "minimal",
+            "command": [
+              "/bin/sh",
+              "-c",
+              "echo '[postgres-demo] PostgreSQL 16 (simulated on minimal)'; echo 'listening 5432'; while true; do sleep 30; done"
+            ],
+            "env": {
+              "POSTGRES_DB": "wordpress",
+              "POSTGRES_USER": "wp",
+              "PGPORT": "5432"
+            },
+            "resources": { "memory": 67108864, "cpu": 100 }
+          }
+        ],
+        "restart_policy": "Always"
+      }
+    }
+  }
+}

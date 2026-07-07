@@ -3,6 +3,7 @@ package shepherd
 import (
 	"encoding/json"
 	"fmt"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -392,4 +393,45 @@ func nsKey(namespace, name string) []byte {
 		namespace = "default"
 	}
 	return []byte(namespace + "/" + name)
+}
+
+// namespaceFromKey extracts the namespace segment from a store key "ns/name".
+func namespaceFromKey(key string) string {
+	if i := strings.Index(key, "/"); i >= 0 {
+		return key[:i]
+	}
+	return "default"
+}
+
+// ListNamespaces returns sorted unique namespace names found in namespaced
+// resource buckets (pods, services, deployments). Always includes "default".
+func (s *Store) ListNamespaces() ([]string, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	seen := map[string]bool{"default": true}
+	for _, bucket := range [][]byte{bucketPods, bucketServices, bucketDeployments} {
+		if err := s.db.View(func(tx *bolt.Tx) error {
+			b := tx.Bucket(bucket)
+			if b == nil {
+				return nil
+			}
+			return b.ForEach(func(k, _ []byte) error {
+				ns := namespaceFromKey(string(k))
+				if ns != "" {
+					seen[ns] = true
+				}
+				return nil
+			})
+		}); err != nil {
+			return nil, err
+		}
+	}
+
+	out := make([]string, 0, len(seen))
+	for ns := range seen {
+		out = append(out, ns)
+	}
+	sort.Strings(out)
+	return out, nil
 }

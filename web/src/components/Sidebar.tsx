@@ -34,6 +34,7 @@ export function Sidebar({
       count: data?.services?.length,
     },
     { to: '/events', label: 'Events', icon: '≡', count: data?.events?.length },
+    { to: '/meadow', label: 'Meadow', icon: '◇' },
     { to: '/pasture', label: 'Pasture', icon: '⛰' },
   ]
 

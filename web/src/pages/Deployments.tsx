@@ -2,11 +2,13 @@ import { PageHeader } from '../components/PageHeader'
 import { Progress } from '../components/Progress'
 import { EmptyState, ErrorState, LoadingRows } from '../components/states'
 import { formatSelector } from '../lib/format'
+import { useRowNavigate } from '../lib/navigation'
 import { usePageData } from './context'
 
 export function Deployments() {
   const { data, loading, error } = usePageData()
   const deployments = data?.deployments ?? []
+  const onRow = useRowNavigate()
 
   if (loading && !data)
     return (
@@ -49,7 +51,13 @@ export function Deployments() {
                 const desired = d.spec?.replicas ?? 0
                 const ready = d.status?.ready_replicas ?? 0
                 return (
-                  <tr key={d.metadata.uid || d.metadata.name}>
+                  <tr
+                    key={d.metadata.uid || d.metadata.name}
+                    className="table-row--clickable"
+                    onClick={onRow(
+                      `/deployments/${d.metadata.namespace}/${d.metadata.name}`,
+                    )}
+                  >
                     <td className="td-name">{d.metadata.name}</td>
                     <td className="td-muted">{d.metadata.namespace}</td>
                     <td>

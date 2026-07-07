@@ -1,0 +1,31 @@
+{
+  "kind": "Deployment",
+  "metadata": {
+    "name": "postgres-db",
+    "namespace": "default",
+    "labels": { "app": "postgres", "tier": "database" }
+  },
+  "spec": {
+    "replicas": 1,
+    "selector": { "app": "postgres" },
+    "template": {
+      "metadata": { "labels": { "app": "postgres", "tier": "database" } },
+      "spec": {
+        "containers": [
+          {
+            "name": "postgres",
+            "image": "postgres:16-alpine",
+            "command": [],
+            "env": {
+              "POSTGRES_DB": "wordpress",
+              "POSTGRES_USER": "wp",
+              "POSTGRES_PASSWORD": "wp-secret-change-me"
+            },
+            "resources": { "memory": 268435456, "cpu": 250 }
+          }
+        ],
+        "restart_policy": "Always"
+      }
+    }
+  }
+}

@@ -2,11 +2,13 @@ import { PageHeader } from '../components/PageHeader'
 import { NodeConditionBadge } from '../components/status'
 import { EmptyState, ErrorState, LoadingRows } from '../components/states'
 import { formatBytes, formatCpu, formatRelativeTime } from '../lib/format'
+import { useRowNavigate } from '../lib/navigation'
 import { usePageData } from './context'
 
 export function Nodes() {
   const { data, loading, error } = usePageData()
   const nodes = data?.nodes ?? []
+  const onRow = useRowNavigate()
 
   if (loading && !data) return withHead(<LoadingRows />)
   if (error && !data) return withHead(<ErrorState message={error} />)
@@ -36,7 +38,11 @@ export function Nodes() {
             </thead>
             <tbody>
               {nodes.map((n) => (
-                <tr key={n.metadata.uid || n.metadata.name}>
+                <tr
+                  key={n.metadata.uid || n.metadata.name}
+                  className="table-row--clickable"
+                  onClick={onRow(`/nodes/${n.metadata.name}`)}
+                >
                   <td className="td-name">{n.metadata.name}</td>
                   <td className="td-mono">{n.spec?.address || '—'}</td>
                   <td>

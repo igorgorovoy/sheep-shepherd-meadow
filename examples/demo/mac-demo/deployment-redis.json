@@ -1,0 +1,32 @@
+{
+  "kind": "Deployment",
+  "metadata": {
+    "name": "redis-cache",
+    "namespace": "default",
+    "labels": { "app": "redis", "tier": "cache" }
+  },
+  "spec": {
+    "replicas": 1,
+    "selector": { "app": "redis" },
+    "template": {
+      "metadata": {
+        "labels": { "app": "redis", "tier": "cache" }
+      },
+      "spec": {
+        "containers": [
+          {
+            "name": "redis",
+            "image": "minimal",
+            "command": [
+              "/bin/sh",
+              "-c",
+              "echo '[redis-demo] Redis 7 (simulated)'; while true; do echo PONG; sleep 20; done"
+            ],
+            "resources": { "memory": 33554432, "cpu": 50 }
+          }
+        ],
+        "restart_policy": "Always"
+      }
+    }
+  }
+}

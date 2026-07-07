@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { API_BASE } from '../api/client'
+import { getShepherdApiBase } from '../api/config'
 
 // Reusable loading / empty / error presentational states.
 
@@ -32,8 +32,8 @@ export function ErrorState({ message }: { message: string }) {
       <div className="state__title">Cannot reach the cluster</div>
       <div className="state__sub">
         {message}. Confirm Shepherd is running at{' '}
-        <span className="mono">{API_BASE}</span> and that{' '}
-        <span className="mono">VITE_SHEPHERD_API</span> points at it.
+        <span className="mono">{getShepherdApiBase()}</span> (configure in Settings
+        if needed).
       </div>
     </div>
   )

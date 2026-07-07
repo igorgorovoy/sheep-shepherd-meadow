@@ -2,24 +2,26 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   fetchClusterSummary,
   fetchHealth,
+  normalizeSummary,
 } from '../api/client'
-import type { ClusterSummary } from '../api/types'
+import type { ClusterSummary, NamespaceFilter } from '../api/types'
 
 const POLL_INTERVAL_MS = 5000
 
 export interface ClusterDataState {
   data: ClusterSummary | null
   healthy: boolean
-  loading: boolean // true only on the very first load
-  refreshing: boolean // true whenever a fetch is in-flight
+  loading: boolean
+  refreshing: boolean
   error: string | null
   lastUpdated: Date | null
   refresh: () => void
 }
 
-// Polls the whole cluster state every 5s, exposes a manual refresh, and
-// keeps the last successful snapshot on screen while refetching.
-export function useClusterData(): ClusterDataState {
+export function useClusterData(
+  namespace: NamespaceFilter,
+  configKey = '',
+): ClusterDataState {
   const [data, setData] = useState<ClusterSummary | null>(null)
   const [healthy, setHealthy] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -36,13 +38,14 @@ export function useClusterData(): ClusterDataState {
     inFlight.current = controller
     setRefreshing(true)
 
-    // Health check is independent and never throws.
     void fetchHealth(controller.signal).then((h) => {
       if (mounted.current) setHealthy(h)
     })
 
     try {
-      const summary = await fetchClusterSummary(controller.signal)
+      const summary = normalizeSummary(
+        await fetchClusterSummary(namespace, controller.signal),
+      )
       if (!mounted.current || controller.signal.aborted) return
       setData(summary)
       setError(null)
@@ -58,7 +61,7 @@ export function useClusterData(): ClusterDataState {
         setRefreshing(false)
       }
     }
-  }, [])
+  }, [namespace, configKey])
 
   const refresh = useCallback(() => {
     void load()
@@ -66,6 +69,7 @@ export function useClusterData(): ClusterDataState {
 
   useEffect(() => {
     mounted.current = true
+    setLoading((prev) => (data ? prev : true))
     void load()
     const id = window.setInterval(() => void load(), POLL_INTERVAL_MS)
     return () => {
@@ -73,7 +77,7 @@ export function useClusterData(): ClusterDataState {
       window.clearInterval(id)
       inFlight.current?.abort()
     }
-  }, [load])
+  }, [load]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return { data, healthy, loading, refreshing, error, lastUpdated, refresh }
 }

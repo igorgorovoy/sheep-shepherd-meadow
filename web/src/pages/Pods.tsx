@@ -1,6 +1,7 @@
 import { PageHeader } from '../components/PageHeader'
 import { PodPhaseBadge } from '../components/status'
 import { EmptyState, ErrorState, LoadingRows } from '../components/states'
+import { useRowNavigate } from '../lib/navigation'
 import { usePageData } from './context'
 import type { Pod } from '../api/types'
 
@@ -11,6 +12,7 @@ function images(pod: Pod): string[] {
 export function Pods() {
   const { data, loading, error } = usePageData()
   const pods = data?.pods ?? []
+  const onRow = useRowNavigate()
 
   if (loading && !data)
     return (
@@ -52,7 +54,11 @@ export function Pods() {
             </thead>
             <tbody>
               {pods.map((p) => (
-                <tr key={p.metadata.uid || `${p.metadata.namespace}/${p.metadata.name}`}>
+                <tr
+                  key={p.metadata.uid || `${p.metadata.namespace}/${p.metadata.name}`}
+                  className="table-row--clickable"
+                  onClick={onRow(`/pods/${p.metadata.namespace}/${p.metadata.name}`)}
+                >
                   <td className="td-name">{p.metadata.name}</td>
                   <td className="td-muted">{p.metadata.namespace}</td>
                   <td>

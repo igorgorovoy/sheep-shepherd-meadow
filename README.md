@@ -271,6 +271,7 @@ sudo ./bin/shepherd --mode agent --node-name worker-2 --api-addr 10.0.0.1:9876
 ## Documentation
 
 - **[Getting Started](docs/getting-started.md)** — building, creating images, running applications, orchestration
+- **[Demo Deployments](docs/demo-deployments.md)** — WordPress + PostgreSQL та інші приклади деплою контейнерів
 - [Architecture Overview](docs/architecture.md) — system design, component diagrams
 - [Sheep Internals](docs/sheep-internals.md) — container runtime: namespaces, cgroups, overlayfs, networking
 - [Shepherd Internals](docs/shepherd-internals.md) — orchestrator: scheduler, controllers, reconciliation loops
