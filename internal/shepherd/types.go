@@ -17,7 +17,7 @@ type ObjectMeta struct {
 // --- Pod ---
 
 type Pod struct {
-	Kind     string    `json:"kind"`
+	Kind     string     `json:"kind"`
 	Metadata ObjectMeta `json:"metadata"`
 	Spec     PodSpec    `json:"spec"`
 	Status   PodStatus  `json:"status"`
@@ -31,12 +31,12 @@ type PodSpec struct {
 }
 
 type ContainerSpec struct {
-	Name    string            `json:"name"`
-	Image   string            `json:"image"`
-	Command []string          `json:"command,omitempty"`
-	Env     map[string]string `json:"env,omitempty"`
-	Ports   []PortSpec        `json:"ports,omitempty"`
-	Resources ResourceSpec    `json:"resources,omitempty"`
+	Name      string            `json:"name"`
+	Image     string            `json:"image"`
+	Command   []string          `json:"command,omitempty"`
+	Env       map[string]string `json:"env,omitempty"`
+	Ports     []PortSpec        `json:"ports,omitempty"`
+	Resources ResourceSpec      `json:"resources,omitempty"`
 }
 
 type PortSpec struct {
@@ -88,9 +88,9 @@ type ContainerStatus struct {
 // --- Service ---
 
 type Service struct {
-	Kind     string      `json:"kind"`
-	Metadata ObjectMeta  `json:"metadata"`
-	Spec     ServiceSpec `json:"spec"`
+	Kind     string        `json:"kind"`
+	Metadata ObjectMeta    `json:"metadata"`
+	Spec     ServiceSpec   `json:"spec"`
 	Status   ServiceStatus `json:"status"`
 }
 
@@ -123,9 +123,9 @@ type ServiceStatus struct {
 // --- Deployment ---
 
 type Deployment struct {
-	Kind     string         `json:"kind"`
-	Metadata ObjectMeta     `json:"metadata"`
-	Spec     DeploymentSpec `json:"spec"`
+	Kind     string           `json:"kind"`
+	Metadata ObjectMeta       `json:"metadata"`
+	Spec     DeploymentSpec   `json:"spec"`
 	Status   DeploymentStatus `json:"status"`
 }
 
@@ -168,11 +168,11 @@ const (
 )
 
 type NodeStatus struct {
-	Condition    NodeCondition `json:"condition"`
-	Capacity     NodeResources `json:"capacity"`
-	Allocatable  NodeResources `json:"allocatable"`
-	PodCount     int           `json:"pod_count"`
-	LastHeartbeat time.Time    `json:"last_heartbeat"`
+	Condition     NodeCondition `json:"condition"`
+	Capacity      NodeResources `json:"capacity"`
+	Allocatable   NodeResources `json:"allocatable"`
+	PodCount      int           `json:"pod_count"`
+	LastHeartbeat time.Time     `json:"last_heartbeat"`
 }
 
 type NodeResources struct {

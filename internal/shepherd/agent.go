@@ -16,11 +16,11 @@ import (
 // Agent runs on each node and manages containers via the sheep runtime.
 // It registers with the API server, sends heartbeats, and reconciles pods.
 type Agent struct {
-	nodeName  string
-	apiAddr   string // shepherd API server address
-	mgr       *container.Manager
-	logger    *log.Logger
-	capacity  NodeResources
+	nodeName string
+	apiAddr  string // shepherd API server address
+	mgr      *container.Manager
+	logger   *log.Logger
+	capacity NodeResources
 }
 
 func NewAgent(nodeName, apiAddr string, logger *log.Logger) *Agent {

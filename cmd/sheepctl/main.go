@@ -342,7 +342,7 @@ func cmdScale() {
 			v, _ := strconv.Atoi(strings.TrimPrefix(arg, "--replicas="))
 			replicas = v
 		}
-		if (arg == "-n" || arg == "--namespace") {
+		if arg == "-n" || arg == "--namespace" {
 			// handled in next iteration
 		}
 	}
