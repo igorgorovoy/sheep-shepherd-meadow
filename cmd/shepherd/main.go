@@ -9,10 +9,18 @@ import (
 	"os/signal"
 	"syscall"
 
+	"sheep/internal/container"
+
 	"sheep/internal/shepherd"
 )
 
 func main() {
+	// Handle container init re-exec (agent starts containers by re-execing this binary)
+	if len(os.Args) > 1 && os.Args[1] == "init" {
+		handleInit()
+		return
+	}
+
 	var (
 		addr     = flag.String("addr", ":9876", "API server listen address")
 		dataDir  = flag.String("data-dir", "/var/lib/shepherd", "Data directory")
@@ -66,7 +74,6 @@ func runServer(addr, dataDir string, logger *log.Logger) {
 
 	api := shepherd.NewAPIServer(addr, store, scheduler, logger)
 
-	// Graceful shutdown
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 
@@ -79,7 +86,8 @@ func runServer(addr, dataDir string, logger *log.Logger) {
 
 	logger.Printf("shepherd server starting on %s", addr)
 	if err := api.Start(); err != nil && err.Error() != "http: Server closed" {
-		logger.Fatalf("api server: %v", err)
+		close(stopCh)
+		logger.Printf("api server error: %v", err)
 	}
 }
 
@@ -110,6 +118,7 @@ func runStandalone(addr, dataDir, nodeName string, logger *log.Logger) {
 	defer store.Close()
 
 	stopCh := make(chan struct{})
+	errCh := make(chan error, 1)
 
 	scheduler := shepherd.NewScheduler(store, logger)
 	go scheduler.Run(stopCh)
@@ -139,21 +148,60 @@ func runStandalone(addr, dataDir, nodeName string, logger *log.Logger) {
 	// Start API server first, then agent
 	go func() {
 		if err := api.Start(); err != nil && err.Error() != "http: Server closed" {
-			logger.Fatalf("api server: %v", err)
+			errCh <- fmt.Errorf("api server: %w", err)
 		}
 	}()
 
-	// Small delay for API server to be ready
 	go func() {
-		// Agent will retry on connection failure
-		agent.Run(stopCh)
+		if err := agent.Run(stopCh); err != nil {
+			errCh <- fmt.Errorf("agent: %w", err)
+		}
 	}()
 
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
-	<-sigCh
 
-	logger.Println("shutting down...")
+	select {
+	case <-sigCh:
+		logger.Println("shutting down...")
+	case err := <-errCh:
+		logger.Printf("fatal: %v, shutting down...", err)
+	}
+
 	close(stopCh)
 	api.Shutdown(context.Background())
+}
+
+func handleInit() {
+	var rootfs, hostname string
+	var command []string
+
+	args := os.Args[2:]
+	for i := 0; i < len(args); i++ {
+		switch args[i] {
+		case "--rootfs":
+			i++
+			if i < len(args) {
+				rootfs = args[i]
+			}
+		case "--hostname":
+			i++
+			if i < len(args) {
+				hostname = args[i]
+			}
+		case "--":
+			command = args[i+1:]
+			i = len(args)
+		}
+	}
+
+	if rootfs == "" {
+		fmt.Fprintln(os.Stderr, "shepherd: init: --rootfs is required")
+		os.Exit(1)
+	}
+
+	if err := container.ContainerInit(rootfs, hostname, command); err != nil {
+		fmt.Fprintf(os.Stderr, "shepherd: init: %v\n", err)
+		os.Exit(1)
+	}
 }

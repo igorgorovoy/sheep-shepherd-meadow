@@ -68,9 +68,18 @@ func (rc *ReplicationController) reconcileDeployment(dep *Deployment) {
 	desired := dep.Spec.Replicas
 
 	if current < desired {
-		// Scale up
-		for i := 0; i < desired-current; i++ {
-			rc.createPodForDeployment(dep, current+i)
+		// Scale up: find available indices that don't collide with existing pods
+		existing := make(map[string]bool)
+		for _, pod := range matchingPods {
+			existing[pod.Metadata.Name] = true
+		}
+		created := 0
+		for idx := 0; created < desired-current; idx++ {
+			name := fmt.Sprintf("%s-%d", dep.Metadata.Name, idx)
+			if !existing[name] {
+				rc.createPodForDeployment(dep, idx)
+				created++
+			}
 		}
 		rc.logger.Printf("replication controller: scaled up %s from %d to %d",
 			dep.Metadata.Name, current, desired)
