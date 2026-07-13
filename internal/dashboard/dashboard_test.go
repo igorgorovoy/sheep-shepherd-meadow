@@ -16,9 +16,9 @@ func TestHandler(t *testing.T) {
 		wantStatus int
 		wantBody   string // substring expected in body
 	}{
-		{name: "root serves index", path: "/", wantStatus: http.StatusOK, wantBody: "<!DOCTYPE html>"},
-		{name: "spa fallback for unknown route", path: "/pods/some-pod", wantStatus: http.StatusOK, wantBody: "<!DOCTYPE html>"},
-		{name: "spa fallback for nested route", path: "/nodes", wantStatus: http.StatusOK, wantBody: "<!DOCTYPE html>"},
+		{name: "root serves index", path: "/", wantStatus: http.StatusOK, wantBody: "<!doctype html>"},
+		{name: "spa fallback for unknown route", path: "/pods/some-pod", wantStatus: http.StatusOK, wantBody: "<!doctype html>"},
+		{name: "spa fallback for nested route", path: "/nodes", wantStatus: http.StatusOK, wantBody: "<!doctype html>"},
 	}
 
 	for _, tt := range tests {
